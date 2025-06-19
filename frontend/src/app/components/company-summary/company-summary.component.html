@@ -1,0 +1,165 @@
+<div class="p-3">
+  <h1 class="text-3xl font-bold mb-4">Company Dashboard</h1>
+
+  <div class="grid" *ngIf="summary">
+    <div class="col-12 md:col-6 lg:col-3">
+      <div class="surface-card shadow-2 p-3 border-round">
+        <div class="flex justify-content-between align-items-start">
+          <div>
+            <span class="block text-500 font-medium text-sm mb-2"
+              >Total Revenue</span
+            >
+            <div class="text-900 font-bold text-2xl">
+              {{ summary.summary.totalRevenue | currency }}
+            </div>
+          </div>
+          <div
+            class="flex align-items-center justify-content-center bg-blue-100 border-round w-3rem h-3rem"
+          >
+            <i class="pi pi-dollar text-blue-500 text-xl"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 md:col-6 lg:col-3">
+      <div class="surface-card shadow-2 p-3 border-round">
+        <div class="flex justify-content-between align-items-start">
+          <div>
+            <span class="block text-500 font-medium text-sm mb-2"
+              >Total Cost</span
+            >
+            <div class="text-900 font-bold text-2xl">
+              {{ summary.summary.totalCost | currency }}
+            </div>
+          </div>
+          <div
+            class="flex align-items-center justify-content-center bg-orange-100 border-round w-3rem h-3rem"
+          >
+            <i class="pi pi-chart-line text-orange-500 text-xl"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 md:col-6 lg:col-3">
+      <div class="surface-card shadow-2 p-3 border-round">
+        <div class="flex justify-content-between align-items-start">
+          <div>
+            <span class="block text-500 font-medium text-sm mb-2"
+              >Total Profit</span
+            >
+            <div class="text-900 font-bold text-2xl">
+              {{ summary.summary.totalProfit | currency }}
+            </div>
+          </div>
+          <div
+            class="flex align-items-center justify-content-center bg-green-100 border-round w-3rem h-3rem"
+          >
+            <i class="pi pi-trending-up text-green-500 text-xl"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 md:col-6 lg:col-3">
+      <div class="surface-card shadow-2 p-3 border-round">
+        <div class="flex justify-content-between align-items-start">
+          <div>
+            <span class="block text-500 font-medium text-sm mb-2"
+              >Profit Margin</span
+            >
+            <div class="text-900 font-bold text-2xl">
+              {{ summary.summary.overallMargin | number : "1.1-1" }}%
+            </div>
+          </div>
+          <div
+            class="flex align-items-center justify-content-center bg-purple-100 border-round w-3rem h-3rem"
+          >
+            <i class="pi pi-percentage text-purple-500 text-xl"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <p-card header="Company Rates">
+      <div class="grid" *ngIf="summary">
+        <div class="col-12 md:col-4">
+          <div class="text-500 text-sm">Overhead Rate</div>
+          <div class="text-900 text-2xl font-semibold mt-1">
+            {{ summary.rates.overhead }}%
+          </div>
+        </div>
+        <div class="col-12 md:col-4">
+          <div class="text-500 text-sm">G&A Rate</div>
+          <div class="text-900 text-2xl font-semibold mt-1">
+            {{ summary.rates.ga }}%
+          </div>
+        </div>
+        <div class="col-12 md:col-4">
+          <div class="text-500 text-sm">Target Profit</div>
+          <div class="text-900 text-2xl font-semibold mt-1">
+            {{ summary.rates.targetProfit }}%
+          </div>
+        </div>
+      </div>
+    </p-card>
+  </div>
+
+  <div class="mt-4">
+    <p-card header="Employee Profitability">
+      <p-table
+        [value]="summary?.employees || []"
+        [paginator]="true"
+        [rows]="10"
+        styleClass="p-datatable-striped"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Name</th>
+            <th>Title</th>
+            <th>Revenue</th>
+            <th>Cost</th>
+            <th>Profit</th>
+            <th>Margin</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-employee>
+          <tr>
+            <td>{{ employee.name }}</td>
+            <td>{{ employee.title }}</td>
+            <td>{{ employee.revenue | currency }}</td>
+            <td>{{ employee.cost | currency }}</td>
+            <td
+              [ngClass]="{
+                'text-green-600': employee.profit > 0,
+                'text-red-600': employee.profit < 0
+              }"
+            >
+              {{ employee.profit | currency }}
+            </td>
+            <td>
+              <p-tag
+                [severity]="getMarginSeverity(employee.margin)"
+                [value]="employee.margin.toFixed(1) + '%'"
+              ></p-tag>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-card>
+  </div>
+
+  <div class="mt-4">
+    <p-card header="Profitability Chart">
+      <p-chart
+        type="bar"
+        [data]="chartData"
+        [options]="chartOptions"
+        class="h-20rem"
+      ></p-chart>
+    </p-card>
+  </div>
+</div>

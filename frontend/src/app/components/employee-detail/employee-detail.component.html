@@ -1,0 +1,321 @@
+<div class="p-3" *ngIf="employee">
+  <div class="flex justify-content-between align-items-center mb-4">
+    <h1 class="text-3xl font-bold">{{ employee.name }} - Cost Analysis</h1>
+    <p-button
+      label="Back to List"
+      icon="pi pi-arrow-left"
+      (click)="goBack()"
+    ></p-button>
+  </div>
+
+  <div class="grid">
+    <div class="col-12 md:col-6">
+      <p-card header="Employee Information">
+        <div class="grid">
+          <div class="col-4 font-bold text-900">Name:</div>
+          <div class="col-8">{{ employee.name }}</div>
+
+          <div class="col-4 font-bold text-900">Title:</div>
+          <div class="col-8">{{ employee.title }}</div>
+
+          <div class="col-4 font-bold text-900">Base Salary:</div>
+          <div class="col-8">{{ employee.baseSalary | currency }}</div>
+
+          <div class="col-4 font-bold text-900">Hire Date:</div>
+          <div class="col-8">{{ employee.hireDate | date }}</div>
+        </div>
+      </p-card>
+    </div>
+
+    <div class="col-12 md:col-6">
+      <p-card header="Fringe Benefits">
+        <div class="grid">
+          <div class="col-6">Health Insurance:</div>
+          <div class="col-6 text-right font-semibold">
+            {{ employee.FringeBenefit?.healthInsurance | currency }}
+          </div>
+
+          <div class="col-6">Dental Insurance:</div>
+          <div class="col-6 text-right font-semibold">
+            {{ employee.FringeBenefit?.dentalInsurance | currency }}
+          </div>
+
+          <div class="col-6">Vision Insurance:</div>
+          <div class="col-6 text-right font-semibold">
+            {{ employee.FringeBenefit?.visionInsurance | currency }}
+          </div>
+
+          <div class="col-6">401k Match:</div>
+          <div class="col-6 text-right font-semibold">
+            {{ employee.FringeBenefit?.match401k | currency }}
+          </div>
+
+          <div class="col-6">PTO Cost:</div>
+          <div class="col-6 text-right font-semibold">
+            {{ employee.FringeBenefit?.ptoCost | currency }}
+          </div>
+
+          <div class="col-6">Training Budget:</div>
+          <div class="col-6 text-right font-semibold">
+            {{ employee.FringeBenefit?.trainingBudget | currency }}
+          </div>
+        </div>
+        <p-divider></p-divider>
+        <div class="grid">
+          <div class="col-6 font-bold text-900">Total Fringe:</div>
+          <div class="col-6 text-right font-bold text-primary text-xl">
+            {{ getTotalFringe() | currency }}
+          </div>
+        </div>
+      </p-card>
+    </div>
+  </div>
+
+  <div class="mt-4" *ngIf="costAnalysis">
+    <p-tabView>
+      <p-tabPanel header="1800 Hours Utilization">
+        <div class="grid">
+          <div class="col-12 md:col-6">
+            <h3 class="text-xl font-semibold mb-3">Rate Breakdown</h3>
+            <div class="surface-100 p-3 border-round">
+              <div
+                class="flex justify-content-between py-2 border-bottom-1 surface-border"
+              >
+                <span>Direct Labor Rate:</span>
+                <span class="font-semibold"
+                  >{{
+                    costAnalysis.hours1800.rates.directLaborRate | currency
+                  }}/hr</span
+                >
+              </div>
+              <div
+                class="flex justify-content-between py-2 border-bottom-1 surface-border"
+              >
+                <span>Fringe Rate:</span>
+                <span class="font-semibold"
+                  >{{
+                    costAnalysis.hours1800.rates.fringeRate | number : "1.1-1"
+                  }}%</span
+                >
+              </div>
+              <div
+                class="flex justify-content-between py-2 border-bottom-1 surface-border"
+              >
+                <span>Overhead Rate:</span>
+                <span class="font-semibold"
+                  >{{
+                    costAnalysis.hours1800.rates.overheadRate
+                      | number : "1.1-1"
+                  }}%</span
+                >
+              </div>
+              <div class="flex justify-content-between py-2">
+                <span>G&A Rate:</span>
+                <span class="font-semibold"
+                  >{{
+                    costAnalysis.hours1800.rates.gaRate | number : "1.1-1"
+                  }}%</span
+                >
+              </div>
+            </div>
+          </div>
+          <div class="col-12 md:col-6">
+            <h3 class="text-xl font-semibold mb-3">Cost Buildup</h3>
+            <div class="surface-100 p-3 border-round">
+              <div
+                class="flex justify-content-between py-2 border-bottom-1 surface-border"
+              >
+                <span>Direct Labor:</span>
+                <span class="font-semibold"
+                  >{{
+                    costAnalysis.hours1800.costs.directLabor | currency
+                  }}/hr</span
+                >
+              </div>
+              <div
+                class="flex justify-content-between py-2 border-bottom-1 surface-border"
+              >
+                <span>+ Fringe:</span>
+                <span class="font-semibold"
+                  >{{
+                    costAnalysis.hours1800.costs.fringeCost | currency
+                  }}/hr</span
+                >
+              </div>
+              <div
+                class="flex justify-content-between py-2 border-bottom-1 surface-border"
+              >
+                <span>+ Overhead:</span>
+                <span class="font-semibold"
+                  >{{
+                    costAnalysis.hours1800.costs.overheadCost | currency
+                  }}/hr</span
+                >
+              </div>
+              <div
+                class="flex justify-content-between py-2 border-bottom-1 surface-border"
+              >
+                <span>+ G&A:</span>
+                <span class="font-semibold"
+                  >{{ costAnalysis.hours1800.costs.gaCost | currency }}/hr</span
+                >
+              </div>
+              <div
+                class="flex justify-content-between py-2 border-top-2 surface-border font-bold text-primary"
+              >
+                <span>Total Burdened Cost:</span>
+                <span class="text-xl"
+                  >{{
+                    costAnalysis.hours1800.costs.totalBurdenedCost | currency
+                  }}/hr</span
+                >
+              </div>
+              <div class="flex justify-content-between py-2 font-bold">
+                <span>Wrap Rate:</span>
+                <span class="text-xl">{{
+                  costAnalysis.hours1800.costs.wrapRate | number : "1.2-2"
+                }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mt-4">
+          <p-card header="Target Billing" styleClass="bg-primary-50">
+            <div class="flex justify-content-between align-items-center">
+              <span class="text-lg"
+                >Target Bill Rate ({{
+                  costAnalysis.hours1800.targetProfitMargin
+                }}% margin):</span
+              >
+              <span class="font-bold text-3xl text-primary">
+                {{ costAnalysis.hours1800.targetBillRate | currency }}/hr
+              </span>
+            </div>
+          </p-card>
+        </div>
+      </p-tabPanel>
+
+      <p-tabPanel header="1860 Hours Utilization">
+        <div class="grid">
+          <div class="col-12 md:col-6">
+            <h3 class="text-xl font-semibold mb-3">Rate Breakdown</h3>
+            <div class="surface-100 p-3 border-round">
+              <div
+                class="flex justify-content-between py-2 border-bottom-1 surface-border"
+              >
+                <span>Direct Labor Rate:</span>
+                <span class="font-semibold"
+                  >{{
+                    costAnalysis.hours1860.rates.directLaborRate | currency
+                  }}/hr</span
+                >
+              </div>
+              <div
+                class="flex justify-content-between py-2 border-bottom-1 surface-border"
+              >
+                <span>Fringe Rate:</span>
+                <span class="font-semibold"
+                  >{{
+                    costAnalysis.hours1860.rates.fringeRate | number : "1.1-1"
+                  }}%</span
+                >
+              </div>
+              <div
+                class="flex justify-content-between py-2 border-bottom-1 surface-border"
+              >
+                <span>Overhead Rate:</span>
+                <span class="font-semibold"
+                  >{{
+                    costAnalysis.hours1860.rates.overheadRate
+                      | number : "1.1-1"
+                  }}%</span
+                >
+              </div>
+              <div class="flex justify-content-between py-2">
+                <span>G&A Rate:</span>
+                <span class="font-semibold"
+                  >{{
+                    costAnalysis.hours1860.rates.gaRate | number : "1.1-1"
+                  }}%</span
+                >
+              </div>
+            </div>
+          </div>
+          <div class="col-12 md:col-6">
+            <h3 class="text-xl font-semibold mb-3">Cost Buildup</h3>
+            <div class="surface-100 p-3 border-round">
+              <div
+                class="flex justify-content-between py-2 border-bottom-1 surface-border"
+              >
+                <span>Direct Labor:</span>
+                <span class="font-semibold"
+                  >{{
+                    costAnalysis.hours1860.costs.directLabor | currency
+                  }}/hr</span
+                >
+              </div>
+              <div
+                class="flex justify-content-between py-2 border-bottom-1 surface-border"
+              >
+                <span>+ Fringe:</span>
+                <span class="font-semibold"
+                  >{{
+                    costAnalysis.hours1860.costs.fringeCost | currency
+                  }}/hr</span
+                >
+              </div>
+              <div
+                class="flex justify-content-between py-2 border-bottom-1 surface-border"
+              >
+                <span>+ Overhead:</span>
+                <span class="font-semibold"
+                  >{{
+                    costAnalysis.hours1860.costs.overheadCost | currency
+                  }}/hr</span
+                >
+              </div>
+              <div
+                class="flex justify-content-between py-2 border-bottom-1 surface-border"
+              >
+                <span>+ G&A:</span>
+                <span class="font-semibold"
+                  >{{ costAnalysis.hours1860.costs.gaCost | currency }}/hr</span
+                >
+              </div>
+              <div
+                class="flex justify-content-between py-2 border-top-2 surface-border font-bold text-primary"
+              >
+                <span>Total Burdened Cost:</span>
+                <span class="text-xl"
+                  >{{
+                    costAnalysis.hours1860.costs.totalBurdenedCost | currency
+                  }}/hr</span
+                >
+              </div>
+              <div class="flex justify-content-between py-2 font-bold">
+                <span>Wrap Rate:</span>
+                <span class="text-xl">{{
+                  costAnalysis.hours1860.costs.wrapRate | number : "1.2-2"
+                }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mt-4">
+          <p-card header="Target Billing" styleClass="bg-primary-50">
+            <div class="flex justify-content-between align-items-center">
+              <span class="text-lg"
+                >Target Bill Rate ({{
+                  costAnalysis.hours1860.targetProfitMargin
+                }}% margin):</span
+              >
+              <span class="font-bold text-3xl text-primary">
+                {{ costAnalysis.hours1860.targetBillRate | currency }}/hr
+              </span>
+            </div>
+          </p-card>
+        </div>
+      </p-tabPanel>
+    </p-tabView>
+  </div>
+</div>

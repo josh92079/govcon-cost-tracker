@@ -1,0 +1,262 @@
+<div class="p-3" *ngIf="contractData">
+  <div
+    class="flex flex-wrap justify-content-between align-items-center mb-4 gap-3"
+  >
+    <h1 class="text-3xl font-bold m-0">
+      {{ contractData.contract.contractNumber }} -
+      {{ contractData.contract.contractName }}
+    </h1>
+    <div class="flex gap-2">
+      <p-button
+        label="Assign Employee"
+        icon="pi pi-user-plus"
+        (click)="showAssignDialog()"
+      ></p-button>
+      <p-button
+        label="Back to List"
+        icon="pi pi-arrow-left"
+        (click)="goBack()"
+        severity="secondary"
+      ></p-button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="col-12 md:col-6">
+      <p-card header="Contract Information">
+        <div class="grid">
+          <div class="col-4 font-bold text-900">Contract Number:</div>
+          <div class="col-4 font-bold text-900">Customer:</div>
+          <div class="col-8">{{ contractData.contract.customer }}</div>
+
+          <div class="col-4 font-bold text-900">Type:</div>
+          <div class="col-8">
+            <p-tag
+              [value]="contractData.contract.contractType"
+              [severity]="
+                getContractTypeSeverity(contractData.contract.contractType)
+              "
+            ></p-tag>
+          </div>
+
+          <div class="col-4 font-bold text-900">Start Date:</div>
+          <div class="col-8">{{ contractData.contract.startDate | date }}</div>
+
+          <div class="col-4 font-bold text-900">End Date:</div>
+          <div class="col-8">{{ contractData.contract.endDate | date }}</div>
+
+          <div class="col-4 font-bold text-900">Total Value:</div>
+          <div class="col-8">
+            {{ contractData.contract.totalValue | currency }}
+          </div>
+        </div>
+      </p-card>
+    </div>
+
+    <div class="col-12 md:col-6">
+      <p-card header="Contract Profitability">
+        <div class="grid">
+          <div class="col-4 font-bold text-900">Revenue:</div>
+          <div class="col-8">
+            {{ contractData.profitability.revenue | currency }}
+          </div>
+
+          <div class="col-4 font-bold text-900">Cost:</div>
+          <div class="col-8">
+            {{ contractData.profitability.cost | currency }}
+          </div>
+
+          <div class="col-4 font-bold text-900">Profit:</div>
+          <div
+            class="col-8"
+            [ngClass]="{
+              'text-green-600': contractData.profitability.profit > 0,
+              'text-red-600': contractData.profitability.profit < 0
+            }"
+          >
+            {{ contractData.profitability.profit | currency }}
+          </div>
+
+          <div class="col-4 font-bold text-900">Margin:</div>
+          <div class="col-8">
+            <p-tag
+              [severity]="getMarginSeverity(contractData.profitability.margin)"
+              [value]="contractData.profitability.margin.toFixed(1) + '%'"
+            ></p-tag>
+          </div>
+        </div>
+      </p-card>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <p-card header="Assigned Employees">
+      <p-table
+        [value]="contractData.employees"
+        styleClass="p-datatable-striped"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Employee Name</th>
+            <th>Allocation %</th>
+            <th>Bill Rate</th>
+            <th>Revenue</th>
+            <th>Cost</th>
+            <th>Profit</th>
+            <th>Actions</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-employee>
+          <tr>
+            <td class="font-semibold">{{ employee.name }}</td>
+            <td>{{ employee.allocation }}%</td>
+            <td>{{ employee.billRate | currency }}/hr</td>
+            <td>{{ employee.revenue | currency }}</td>
+            <td>{{ employee.cost | currency }}</td>
+            <td
+              [ngClass]="{
+                'text-green-600': employee.profit > 0,
+                'text-red-600': employee.profit < 0
+              }"
+            >
+              {{ employee.profit | currency }}
+            </td>
+            <td>
+              <p-button
+                icon="pi pi-chart-line"
+                [rounded]="true"
+                [text]="true"
+                (click)="viewRateAnalysis()"
+                pTooltip="View Rate Analysis"
+                severity="info"
+              ></p-button>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="7" class="text-center text-500">
+              No employees assigned to this contract
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-card>
+  </div>
+
+  <div class="mt-4" *ngIf="rateAnalysis">
+    <p-card header="Rate Analysis">
+      <p-table [value]="rateAnalysis" styleClass="p-datatable-striped">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Employee</th>
+            <th>Allocation</th>
+            <th>Burdened Cost</th>
+            <th>Bill Rate</th>
+            <th>Profit/Hr</th>
+            <th>Margin %</th>
+            <th>Markup %</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-rate>
+          <tr>
+            <td class="font-semibold">{{ rate.employee }}</td>
+            <td>{{ rate.allocation }}%</td>
+            <td>{{ rate.burdenedCost | currency }}/hr</td>
+            <td>{{ rate.billRate | currency }}/hr</td>
+            <td
+              [ngClass]="{
+                'text-green-600': rate.profit > 0,
+                'text-red-600': rate.profit < 0
+              }"
+            >
+              {{ rate.profit | currency }}/hr
+            </td>
+            <td>
+              <p-tag
+                [severity]="getMarginSeverity(rate.profitMargin)"
+                [value]="rate.profitMargin.toFixed(1) + '%'"
+              ></p-tag>
+            </td>
+            <td>{{ rate.markup | number : "1.1-1" }}%</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-card>
+  </div>
+
+  <p-dialog
+    [(visible)]="displayAssignDialog"
+    header="Assign Employee to Contract"
+    [modal]="true"
+    [style]="{ width: '40vw' }"
+  >
+    <div class="formgrid grid">
+      <div class="field col-12">
+        <label for="employee" class="font-semibold">Employee *</label>
+        <p-dropdown
+          id="employee"
+          [(ngModel)]="assignment.employeeId"
+          [options]="availableEmployees"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="Select an employee"
+          class="w-full"
+        ></p-dropdown>
+      </div>
+      <div class="field col-12 md:col-6">
+        <label for="allocation" class="font-semibold">Allocation % *</label>
+        <p-inputNumber
+          id="allocation"
+          [(ngModel)]="assignment.allocationPercentage"
+          suffix="%"
+          [min]="0"
+          [max]="100"
+          class="w-full"
+        ></p-inputNumber>
+      </div>
+      <div class="field col-12 md:col-6">
+        <label for="billRate" class="font-semibold">Bill Rate ($/hr) *</label>
+        <p-inputNumber
+          id="billRate"
+          [(ngModel)]="assignment.billRate"
+          mode="currency"
+          currency="USD"
+          class="w-full"
+        ></p-inputNumber>
+      </div>
+      <div class="field col-12 md:col-6">
+        <label for="startDate" class="font-semibold">Start Date *</label>
+        <p-calendar
+          id="startDate"
+          [(ngModel)]="assignment.startDate"
+          dateFormat="mm/dd/yy"
+          class="w-full"
+        ></p-calendar>
+      </div>
+      <div class="field col-12 md:col-6">
+        <label for="endDate" class="font-semibold">End Date</label>
+        <p-calendar
+          id="endDate"
+          [(ngModel)]="assignment.endDate"
+          dateFormat="mm/dd/yy"
+          class="w-full"
+        ></p-calendar>
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <p-button
+        label="Cancel"
+        icon="pi pi-times"
+        [text]="true"
+        (click)="displayAssignDialog = false"
+      ></p-button>
+      <p-button
+        label="Assign"
+        icon="pi pi-check"
+        (click)="assignEmployee()"
+      ></p-button>
+    </ng-template>
+  </p-dialog>
+</div>

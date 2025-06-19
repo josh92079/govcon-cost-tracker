@@ -1,0 +1,178 @@
+<div class="p-3">
+  <div class="flex justify-content-between align-items-center mb-4">
+    <h1 class="text-3xl font-bold">Contracts</h1>
+    <p-button
+      label="Add Contract"
+      icon="pi pi-plus"
+      (click)="showAddDialog()"
+    ></p-button>
+  </div>
+
+  <div class="surface-card p-4 shadow-2 border-round">
+    <p-table
+      [value]="contracts"
+      [paginator]="true"
+      [rows]="10"
+      [loading]="loading"
+      styleClass="p-datatable-striped"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Contract Number</th>
+          <th>Contract Name</th>
+          <th>Customer</th>
+          <th>Type</th>
+          <th>Start Date</th>
+          <th>End Date</th>
+          <th>Total Value</th>
+          <th>Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-contract>
+        <tr>
+          <td class="font-semibold">{{ contract.contractNumber }}</td>
+          <td>{{ contract.contractName }}</td>
+          <td>{{ contract.customer }}</td>
+          <td>
+            <p-tag
+              [value]="contract.contractType"
+              [severity]="getContractTypeSeverity(contract.contractType)"
+            ></p-tag>
+          </td>
+          <td>{{ contract.startDate | date }}</td>
+          <td>{{ contract.endDate | date }}</td>
+          <td>{{ contract.totalValue | currency }}</td>
+          <td>
+            <p-button
+              icon="pi pi-eye"
+              [rounded]="true"
+              [text]="true"
+              (click)="viewContract(contract.id)"
+              pTooltip="View Details"
+              severity="info"
+            ></p-button>
+            <p-button
+              icon="pi pi-pencil"
+              [rounded]="true"
+              [text]="true"
+              (click)="editContract(contract)"
+              pTooltip="Edit"
+              class="ml-2"
+            ></p-button>
+            <p-button
+              icon="pi pi-trash"
+              [rounded]="true"
+              [text]="true"
+              severity="danger"
+              (click)="confirmDelete(contract)"
+              pTooltip="Delete"
+              class="ml-2"
+            ></p-button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <p-dialog
+    [(visible)]="displayDialog"
+    [header]="dialogHeader"
+    [modal]="true"
+    [style]="{ width: '50vw' }"
+    [draggable]="false"
+  >
+    <div class="formgrid grid">
+      <div class="field col-12 md:col-6">
+        <label for="contractNumber" class="font-semibold"
+          >Contract Number *</label
+        >
+        <input
+          type="text"
+          pInputText
+          id="contractNumber"
+          [(ngModel)]="selectedContract.contractNumber"
+          class="w-full"
+          required
+        />
+      </div>
+      <div class="field col-12 md:col-6">
+        <label for="contractName" class="font-semibold">Contract Name *</label>
+        <input
+          type="text"
+          pInputText
+          id="contractName"
+          [(ngModel)]="selectedContract.contractName"
+          class="w-full"
+          required
+        />
+      </div>
+      <div class="field col-12 md:col-6">
+        <label for="customer" class="font-semibold">Customer *</label>
+        <input
+          type="text"
+          pInputText
+          id="customer"
+          [(ngModel)]="selectedContract.customer"
+          class="w-full"
+          required
+        />
+      </div>
+      <div class="field col-12 md:col-6">
+        <label for="contractType" class="font-semibold">Contract Type *</label>
+        <p-dropdown
+          id="contractType"
+          [(ngModel)]="selectedContract.contractType"
+          [options]="contractTypes"
+          optionLabel="label"
+          optionValue="value"
+          class="w-full"
+        ></p-dropdown>
+      </div>
+      <div class="field col-12 md:col-6">
+        <label for="startDate" class="font-semibold">Start Date *</label>
+        <p-calendar
+          id="startDate"
+          [(ngModel)]="selectedContract.startDate"
+          dateFormat="mm/dd/yy"
+          class="w-full"
+        ></p-calendar>
+      </div>
+      <div class="field col-12 md:col-6">
+        <label for="endDate" class="font-semibold">End Date *</label>
+        <p-calendar
+          id="endDate"
+          [(ngModel)]="selectedContract.endDate"
+          dateFormat="mm/dd/yy"
+          class="w-full"
+        ></p-calendar>
+      </div>
+      <div class="field col-12">
+        <label for="totalValue" class="font-semibold"
+          >Total Contract Value</label
+        >
+        <p-inputNumber
+          id="totalValue"
+          [(ngModel)]="selectedContract.totalValue"
+          mode="currency"
+          currency="USD"
+          [minFractionDigits]="0"
+          class="w-full"
+        ></p-inputNumber>
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <p-button
+        label="Cancel"
+        icon="pi pi-times"
+        [text]="true"
+        (click)="displayDialog = false"
+      ></p-button>
+      <p-button
+        label="Save"
+        icon="pi pi-check"
+        (click)="saveContract()"
+      ></p-button>
+    </ng-template>
+  </p-dialog>
+</div>

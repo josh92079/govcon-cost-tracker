@@ -1,0 +1,14 @@
+<div class="min-h-screen surface-ground">
+  <p-menubar [model]="menuItems">
+    <ng-template pTemplate="start">
+      <h2 class="m-0 text-primary">GovCon Cost Tracker</h2>
+    </ng-template>
+  </p-menubar>
+  <div class="p-3 lg:p-4">
+    <div class="mx-auto" style="max-width: 1400px">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>

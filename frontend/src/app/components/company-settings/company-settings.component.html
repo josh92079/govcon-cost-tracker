@@ -1,0 +1,107 @@
+<div class="p-3">
+  <h1 class="text-3xl font-bold mb-2">Company Settings</h1>
+  <p class="text-500 mb-4">Configure company-wide rates and settings</p>
+
+  <p-card header="Company Rates" *ngIf="rates">
+    <form (ngSubmit)="saveRates()">
+      <div class="formgrid grid">
+        <div class="field col-12 md:col-6">
+          <label for="fiscalYear" class="font-semibold mb-2 block"
+            >Fiscal Year</label
+          >
+          <p-inputNumber
+            id="fiscalYear"
+            [(ngModel)]="rates.fiscalYear"
+            name="fiscalYear"
+            [useGrouping]="false"
+            [disabled]="true"
+            class="w-full"
+          ></p-inputNumber>
+        </div>
+
+        <div class="field col-12 md:col-6">
+          <label for="compensationCap" class="font-semibold mb-2 block"
+            >FAR Compensation Cap</label
+          >
+          <p-inputNumber
+            id="compensationCap"
+            [(ngModel)]="rates.compensationCap"
+            name="compensationCap"
+            mode="currency"
+            currency="USD"
+            [minFractionDigits]="0"
+            class="w-full"
+          ></p-inputNumber>
+        </div>
+
+        <div class="field col-12 md:col-4">
+          <label for="overheadRate" class="font-semibold mb-2 block"
+            >Overhead Rate (%)</label
+          >
+          <p-inputNumber
+            id="overheadRate"
+            [(ngModel)]="overheadRatePercent"
+            name="overheadRate"
+            suffix="%"
+            [minFractionDigits]="1"
+            [min]="0"
+            [max]="100"
+            class="w-full"
+          ></p-inputNumber>
+        </div>
+
+        <div class="field col-12 md:col-4">
+          <label for="gaRate" class="font-semibold mb-2 block"
+            >G&A Rate (%)</label
+          >
+          <p-inputNumber
+            id="gaRate"
+            [(ngModel)]="gaRatePercent"
+            name="gaRate"
+            suffix="%"
+            [minFractionDigits]="1"
+            [min]="0"
+            [max]="100"
+            class="w-full"
+          ></p-inputNumber>
+        </div>
+
+        <div class="field col-12 md:col-4">
+          <label for="targetProfitMargin" class="font-semibold mb-2 block"
+            >Target Profit Margin (%)</label
+          >
+          <p-inputNumber
+            id="targetProfitMargin"
+            [(ngModel)]="targetProfitPercent"
+            name="targetProfitMargin"
+            suffix="%"
+            [minFractionDigits]="1"
+            [min]="0"
+            [max]="100"
+            class="w-full"
+          ></p-inputNumber>
+        </div>
+      </div>
+
+      <div class="flex justify-content-end">
+        <p-button type="submit" label="Save Rates" icon="pi pi-save"></p-button>
+      </div>
+    </form>
+  </p-card>
+
+  <div class="mt-4">
+    <p-card header="Wrap Rate Preview" *ngIf="rates">
+      <div class="text-center">
+        <h3 class="text-xl font-semibold mb-3">
+          Current Wrap Rate Calculation
+        </h3>
+        <p class="text-500 mb-3">
+          $1 × (1 + {{ overheadRatePercent }}%) × (1 + {{ gaRatePercent }}%) =
+        </p>
+        <p class="text-5xl font-bold text-primary">
+          {{ calculateWrapRate() | number : "1.2-2" }}
+        </p>
+      </div>
+    </p-card>
+  </div>
+</div>
