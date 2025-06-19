@@ -52,7 +52,10 @@ export class RateCalculatorComponent {
 
   calculateRates() {
     this.apiService.calculateRates(this.inputs).subscribe({
-      next: (data) => (this.results = data),
+      next: (data) => {
+        this.results = data;
+        console.log(data);
+      },
       error: (error) => console.error('Error calculating rates:', error),
     });
   }

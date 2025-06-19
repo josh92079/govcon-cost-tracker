@@ -21,13 +21,13 @@ class CompanyRates
   extends Model<CompanyRatesAttributes, CompanyRatesCreationAttributes>
   implements CompanyRatesAttributes
 {
-  public id!: number;
-  public fiscalYear!: number;
-  public overheadRate!: number;
-  public gaRate!: number;
-  public targetProfitMargin!: number;
-  public compensationCap!: number;
-  public active!: boolean;
+  declare id: number;
+  declare fiscalYear: number;
+  declare overheadRate: number;
+  declare gaRate: number;
+  declare targetProfitMargin: number;
+  declare compensationCap: number;
+  declare active: boolean;
 }
 
 CompanyRates.init(

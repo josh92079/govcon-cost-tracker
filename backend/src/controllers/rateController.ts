@@ -33,7 +33,6 @@ export const rateController = {
         companyRates,
         utilizationHours
       );
-
       res.json(rateStructure);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });

@@ -14,8 +14,8 @@ async function initializeDatabase(): Promise<void> {
     // Create default company rates
     await CompanyRates.create({
       fiscalYear: new Date().getFullYear(),
-      overheadRate: 0.35,
-      gaRate: 0.15,
+      overheadRate: 0.035,
+      gaRate: 0.015,
       targetProfitMargin: 0.1,
       compensationCap: 207000,
     });
