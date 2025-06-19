@@ -20,13 +20,13 @@ class EmployeeContract
   extends Model<EmployeeContractAttributes, EmployeeContractCreationAttributes>
   implements EmployeeContractAttributes
 {
-  public id!: number;
-  public employeeId!: number;
-  public contractId!: number;
-  public allocationPercentage!: number;
-  public billRate!: number;
-  public startDate!: Date;
-  public endDate!: Date | null;
+  declare id: number;
+  declare employeeId: number;
+  declare contractId: number;
+  declare allocationPercentage: number;
+  declare billRate: number;
+  declare startDate: Date;
+  declare endDate: Date | null;
 }
 
 EmployeeContract.init(

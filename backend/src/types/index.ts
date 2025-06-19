@@ -20,6 +20,10 @@ export interface FringeBenefitsInput {
   ptoCost?: number;
   cellAllowance?: number;
   internetAllowance?: number;
+  // Payroll taxes (calculated automatically if not provided)
+  ficaTax?: number;
+  futaTax?: number;
+  sutaTax?: number;
 }
 
 export interface ContractInput {
@@ -51,6 +55,7 @@ export interface RateCalculationInput {
   baseSalary: number;
   fringeBenefits: FringeBenefitsInput;
   utilizationHours?: number;
+  contractType?: "FFP" | "T&M" | "CPFF";
 }
 
 export interface RateStructure {
@@ -76,4 +81,64 @@ export interface RateStructure {
   };
   targetBillRate: number;
   targetProfitMargin: number;
+  validation?: {
+    isValid: boolean;
+    warnings: string[];
+  };
+}
+
+// New interfaces for enhanced features
+export interface RateScenario {
+  utilizationHours: number;
+  contractType?: "FFP" | "T&M" | "CPFF";
+  billRate?: number;
+}
+
+export interface RateComparison {
+  scenario: RateScenario;
+  rateStructure: RateStructure;
+  profitAnalysis?: {
+    profit: number;
+    profitMargin: number;
+    markup: number;
+  };
+}
+
+export interface BulkRateCalculationResult {
+  index: number;
+  error?: string;
+  employee?: RateStructure["employee"];
+  rates?: RateStructure["rates"];
+  costs?: RateStructure["costs"];
+  targetBillRate?: number;
+  targetProfitMargin?: number;
+  validation?: RateStructure["validation"];
+}
+
+export interface ContractRateAnalysis {
+  employee: {
+    id: number;
+    name: string;
+    title: string;
+  };
+  allocation: number;
+  allocatedHours: number;
+  rates: {
+    directLaborRate: number;
+    burdenedCost: number;
+    billRate: number;
+    wrapRate: number;
+  };
+  financial: {
+    allocatedRevenue: number;
+    allocatedCost: number;
+    allocatedProfit: number;
+    profit: number;
+    profitMargin: number;
+    markup: number;
+  };
+  validation?: {
+    isValid: boolean;
+    warnings: string[];
+  };
 }

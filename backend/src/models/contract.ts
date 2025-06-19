@@ -20,15 +20,15 @@ class Contract
   extends Model<ContractAttributes, ContractCreationAttributes>
   implements ContractAttributes
 {
-  public id!: number;
-  public contractNumber!: string;
-  public contractName!: string;
-  public customer!: string;
-  public startDate!: Date;
-  public endDate!: Date;
-  public contractType!: "FFP" | "T&M" | "CPFF";
-  public totalValue!: number | null;
-  public active!: boolean;
+  declare id: number;
+  declare contractNumber: string;
+  declare contractName: string;
+  declare customer: string;
+  declare startDate: Date;
+  declare endDate: Date;
+  declare contractType: "FFP" | "T&M" | "CPFF";
+  declare totalValue: number | null;
+  declare active: boolean;
 }
 
 Contract.init(

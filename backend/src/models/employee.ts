@@ -18,16 +18,16 @@ class Employee
   extends Model<EmployeeAttributes, EmployeeCreationAttributes>
   implements EmployeeAttributes
 {
-  public id!: number;
-  public name!: string;
-  public title!: string;
-  public baseSalary!: number;
-  public hireDate!: Date;
-  public utilizationTarget!: number;
-  public active!: boolean;
+  declare id: number;
+  declare name: string;
+  declare title: string;
+  declare baseSalary: number;
+  declare hireDate: Date;
+  declare utilizationTarget: number;
+  declare active: boolean;
 
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
 }
 
 Employee.init(

@@ -39,19 +39,19 @@ class FringeBenefits
   extends Model<FringeBenefitsAttributes, FringeBenefitsCreationAttributes>
   implements FringeBenefitsAttributes
 {
-  public id!: number;
-  public employeeId!: number;
-  public healthInsurance!: number;
-  public dentalInsurance!: number;
-  public visionInsurance!: number;
-  public ltdInsurance!: number;
-  public stdInsurance!: number;
-  public lifeInsurance!: number;
-  public trainingBudget!: number;
-  public match401k!: number;
-  public ptoCost!: number;
-  public cellAllowance!: number;
-  public internetAllowance!: number;
+  declare id: number;
+  declare employeeId: number;
+  declare healthInsurance: number;
+  declare dentalInsurance: number;
+  declare visionInsurance: number;
+  declare ltdInsurance: number;
+  declare stdInsurance: number;
+  declare lifeInsurance: number;
+  declare trainingBudget: number;
+  declare match401k: number;
+  declare ptoCost: number;
+  declare cellAllowance: number;
+  declare internetAllowance: number;
 }
 
 FringeBenefits.init(
