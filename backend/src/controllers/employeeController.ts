@@ -63,31 +63,43 @@ export const employeeController = {
     res: Response
   ): Promise<void> {
     try {
-      const employee = await Employee.findByPk(req.params.id);
+      const employeeId = parseInt(req.params.id); // Parse the ID to ensure it's a number
+
+      const employee = await Employee.findByPk(employeeId);
 
       if (!employee) {
         res.status(404).json({ error: "Employee not found" });
         return;
       }
 
+      // Update the employee record
       await employee.update(req.body);
 
       if (req.body.fringeBenefits) {
+        // Use the original employeeId from the URL parameter instead of employee.id
         const fringeBenefits = await FringeBenefits.findOne({
-          where: { employeeId: employee.id },
+          where: { employeeId: employeeId }, // Use the parsed employeeId
         });
 
         if (fringeBenefits) {
           await fringeBenefits.update(req.body.fringeBenefits);
+        } else {
+          // Create fringe benefits if they don't exist
+          await FringeBenefits.create({
+            employeeId: employeeId,
+            ...req.body.fringeBenefits,
+          });
         }
       }
 
-      const result = await Employee.findByPk(employee.id, {
+      // Fetch the updated employee with fringe benefits
+      const result = await Employee.findByPk(employeeId, {
         include: [FringeBenefits],
       });
 
       res.json(result);
     } catch (error) {
+      console.error("Error updating employee:", error); // Add logging for debugging
       res.status(400).json({ error: (error as Error).message });
     }
   },

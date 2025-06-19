@@ -72,7 +72,7 @@
     [style]="{ width: '50vw' }"
     [draggable]="false"
   >
-    <div class="formgrid grid">
+    <div *ngIf="displayDialog" class="formgrid grid">
       <div class="field col-12 md:col-6">
         <label for="name" class="font-semibold">Name *</label>
         <input
@@ -125,6 +125,7 @@
           id="hireDate"
           [(ngModel)]="selectedEmployee.hireDate"
           dateFormat="mm/dd/yy"
+          appendTo="body"
           class="w-full"
         ></p-calendar>
       </div>

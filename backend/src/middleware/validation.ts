@@ -9,12 +9,12 @@ export const validateEmployeeInput = (
 
   const errors: string[] = [];
 
-  if (!name || typeof name !== "string") {
-    errors.push("Name is required and must be a string");
+  if (!name || typeof name !== "string" || name.trim() === "") {
+    errors.push("Name is required and must be a non-empty string");
   }
 
-  if (!title || typeof title !== "string") {
-    errors.push("Title is required and must be a string");
+  if (!title || typeof title !== "string" || title.trim() === "") {
+    errors.push("Title is required and must be a non-empty string");
   }
 
   if (!baseSalary || typeof baseSalary !== "number" || baseSalary <= 0) {
@@ -23,10 +23,46 @@ export const validateEmployeeInput = (
 
   if (!hireDate) {
     errors.push("Hire date is required");
+  } else {
+    // Validate that hireDate is a valid date
+    const date = new Date(hireDate);
+    if (isNaN(date.getTime())) {
+      errors.push("Hire date must be a valid date");
+    }
   }
 
-  if (utilizationTarget && ![1800, 1860].includes(utilizationTarget)) {
+  if (
+    utilizationTarget !== undefined &&
+    ![1800, 1860].includes(utilizationTarget)
+  ) {
     errors.push("Utilization target must be either 1800 or 1860");
+  }
+
+  // Validate fringe benefits if provided
+  if (req.body.fringeBenefits) {
+    const fringeBenefits = req.body.fringeBenefits;
+    const benefitFields = [
+      "healthInsurance",
+      "dentalInsurance",
+      "visionInsurance",
+      "ltdInsurance",
+      "stdInsurance",
+      "lifeInsurance",
+      "trainingBudget",
+      "match401k",
+      "ptoCost",
+      "cellAllowance",
+      "internetAllowance",
+    ];
+
+    benefitFields.forEach((field) => {
+      if (
+        fringeBenefits[field] !== undefined &&
+        (typeof fringeBenefits[field] !== "number" || fringeBenefits[field] < 0)
+      ) {
+        errors.push(`${field} must be a non-negative number`);
+      }
+    });
   }
 
   if (errors.length > 0) {

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -11,7 +11,7 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { DropdownModule } from 'primeng/dropdown';
-import { CalendarModule } from 'primeng/calendar';
+import { Calendar, CalendarModule } from 'primeng/calendar';
 import { DividerModule } from 'primeng/divider';
 import { TooltipModule } from 'primeng/tooltip';
 
@@ -33,7 +33,8 @@ import { TooltipModule } from 'primeng/tooltip';
   templateUrl: './employee-list.component.html',
   styleUrl: './employee-list.component.scss',
 })
-export class EmployeeListComponent implements OnInit {
+export class EmployeeListComponent implements OnInit, AfterViewInit {
+  @ViewChild('hireDate') hireDateCalendar!: Calendar;
   employees: Employee[] = [];
   selectedEmployee: Employee = {} as Employee;
   fringeBenefits: any = {};
@@ -56,6 +57,15 @@ export class EmployeeListComponent implements OnInit {
 
   ngOnInit() {
     this.loadEmployees();
+  }
+
+  ngAfterViewInit() {
+    // Ensure calendar is properly initialized
+    if (this.hireDateCalendar) {
+      setTimeout(() => {
+        this.hireDateCalendar.updateUI();
+      }, 0);
+    }
   }
 
   loadEmployees() {
@@ -113,10 +123,19 @@ export class EmployeeListComponent implements OnInit {
   }
 
   saveEmployee() {
+    // Ensure the selectedEmployee has a valid id for updates
+    console.log('Selected Employee:', this.selectedEmployee); // Debug log
+    console.log('Fringe Benefits:', this.fringeBenefits); // Debug log
+
     const employeeData = {
       ...this.selectedEmployee,
       fringeBenefits: this.fringeBenefits,
     };
+
+    // Ensure hireDate is properly formatted
+    if (employeeData.hireDate) {
+      employeeData.hireDate = new Date(employeeData.hireDate);
+    }
 
     if (this.isNew) {
       this.apiService.createEmployee(employeeData).subscribe({
@@ -129,7 +148,8 @@ export class EmployeeListComponent implements OnInit {
           this.displayDialog = false;
           this.loadEmployees();
         },
-        error: () => {
+        error: (error) => {
+          console.error('Create employee error:', error); // Debug log
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
@@ -138,8 +158,18 @@ export class EmployeeListComponent implements OnInit {
         },
       });
     } else {
+      // Ensure we have a valid employee ID
+      if (!this.selectedEmployee.id) {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Invalid employee ID',
+        });
+        return;
+      }
+
       this.apiService
-        .updateEmployee(this.selectedEmployee.id!, employeeData)
+        .updateEmployee(this.selectedEmployee.id, employeeData)
         .subscribe({
           next: () => {
             this.messageService.add({
@@ -150,7 +180,8 @@ export class EmployeeListComponent implements OnInit {
             this.displayDialog = false;
             this.loadEmployees();
           },
-          error: () => {
+          error: (error) => {
+            console.error('Update employee error:', error); // Debug log
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
