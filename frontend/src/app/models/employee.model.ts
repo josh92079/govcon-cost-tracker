@@ -24,17 +24,23 @@ export interface FringeBenefits {
   ptoCost: number;
   cellAllowance: number;
   internetAllowance: number;
+  // Payroll taxes (calculated automatically if not provided)
+  ficaTax?: number;
+  futaTax?: number;
+  sutaTax?: number;
 }
 
 export interface EmployeeCostAnalysis {
   hours1800: RateStructure;
   hours1860: RateStructure;
+  hours1920?: RateStructure;
+  hours2080?: RateStructure;
 }
 
 export interface RateStructure {
   employee: {
-    name: string;
-    title: string;
+    name?: string;
+    title?: string;
     baseSalary: number;
     utilizationHours: number;
   };
@@ -54,4 +60,8 @@ export interface RateStructure {
   };
   targetBillRate: number;
   targetProfitMargin: number;
+  validation?: {
+    isValid: boolean;
+    warnings: string[];
+  };
 }

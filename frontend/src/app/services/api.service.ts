@@ -1,3 +1,4 @@
+// frontend/src/app/services/api.service.ts
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
@@ -86,7 +87,7 @@ export class ApiService {
     return this.http.get<CompanySummary>(`${this.apiUrl}/company/summary`);
   }
 
-  // Rate calculation endpoints
+  // Rate calculation endpoints - ENHANCED
   calculateRates(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/rates/calculate`, data);
   }
@@ -97,5 +98,22 @@ export class ApiService {
 
   getContractRates(id: number): Observable<any> {
     return this.http.get(`${this.apiUrl}/rates/contract/${id}`);
+  }
+
+  // NEW endpoints for enhanced functionality
+  calculateBulkRates(employees: any[]): Observable<any> {
+    return this.http.post(`${this.apiUrl}/rates/calculate-bulk`, { employees });
+  }
+
+  compareRates(data: {
+    baseSalary: number;
+    fringeBenefits: any;
+    scenarios: Array<{
+      utilizationHours: number;
+      contractType?: 'FFP' | 'T&M' | 'CPFF';
+      billRate?: number;
+    }>;
+  }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/rates/compare`, data);
   }
 }

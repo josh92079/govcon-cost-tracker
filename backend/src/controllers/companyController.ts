@@ -5,7 +5,7 @@ import CompanyRates from "../models/companyRates";
 import Contract from "../models/contract";
 import Employee from "../models/employee";
 import FringeBenefits from "../models/fringeBenefits";
-import { CompanyRatesInput } from "../types";
+import { CompanyRatesInput, RateStructure } from "../types";
 
 export const companyController = {
   async getCurrentRates(req: Request, res: Response): Promise<void> {
@@ -96,7 +96,7 @@ export const companyController = {
       const employeeDetails: any[] = [];
 
       for (const employee of employees) {
-        const rateStructure = RateCalculator.buildRateStructure(
+        const rateStructure: RateStructure = RateCalculator.buildRateStructure(
           employee.toJSON(),
           (employee as any).FringeBenefit?.dataValues || {},
           companyRates,
