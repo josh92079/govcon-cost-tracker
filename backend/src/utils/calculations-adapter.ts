@@ -31,7 +31,10 @@ export class RateCalculator {
     annualSalary: number,
     utilizationHours: number
   ): number {
-    return annualSalary / utilizationHours;
+    // FAR-compliant calculation: Always divide by 2080 for direct labor rate
+    // Direct labor rate = Annual salary ÷ 2,080 hours (standard work year)
+    const STANDARD_WORK_YEAR_HOURS = 2080;
+    return annualSalary / STANDARD_WORK_YEAR_HOURS;
   }
 
   static calculateFringeRate(fringeBenefits: any, baseSalary: number): number {
@@ -83,23 +86,28 @@ export class RateCalculator {
     utilizationHours: number,
     contractType?: "FFP" | "T&M" | "CPFF" // Optional parameter for backward compatibility
   ): RateStructure {
-    // Apply compensation cap if available
+    // Apply compensation cap if available (not applicable for T&M contracts)
     const compensationCap = companyRates.compensationCap
       ? parseFloat(String(companyRates.compensationCap))
       : Infinity; // No cap if not set
 
-    const cappedSalary = Math.min(employee.baseSalary, compensationCap);
-    const hourlyRate = this.calculateHourlyRate(cappedSalary, utilizationHours);
+    // For T&M contracts, compensation cap doesn't apply per FAR 16.601
+    // T&M hourly rates are fixed and include all elements
+    const effectiveSalary =
+      contractType === "T&M"
+        ? employee.baseSalary
+        : Math.min(employee.baseSalary, compensationCap);
 
-    // Use capped salary for fringe rate calculation if salary exceeds cap
-    const fringeBaseSalary =
-      employee.baseSalary > compensationCap
-        ? cappedSalary
-        : employee.baseSalary;
+    // Calculate hourly rate based on FAR standards (2080 hours)
+    const hourlyRate = this.calculateHourlyRate(
+      effectiveSalary,
+      utilizationHours // This parameter is ignored in the calculation
+    );
 
+    // Use appropriate salary base for fringe rate calculation
     const fringeRate = this.calculateFringeRate(
       fringeBenefits,
-      fringeBaseSalary
+      effectiveSalary
     );
 
     const breakdown = this.calculateBurdenedCost(
@@ -152,7 +160,7 @@ export class RateCalculator {
         name: employee.name,
         title: employee.title,
         baseSalary: employee.baseSalary,
-        utilizationHours,
+        utilizationHours, // Used for annual cost projections, not rate calculation
       },
       rates: {
         directLaborRate: hourlyRate,
@@ -171,14 +179,14 @@ export class RateCalculator {
       (result as any).validation = validation;
     }
 
-    // Add warning if compensation was capped
-    if (employee.baseSalary > compensationCap) {
+    // Add warning if compensation was capped (not applicable for T&M)
+    if (employee.baseSalary > compensationCap && contractType !== "T&M") {
       if (!(result as any).validation) {
         (result as any).validation = { isValid: true, warnings: [] };
       }
       (result as any).validation.warnings.push(
-        `Salary exceeds FAR compensation cap of $${compensationCap.toLocaleString()}. ` +
-          `Using capped amount for indirect cost calculations.`
+        `Salary exceeds FAR compensation cap of ${compensationCap.toLocaleString()}. ` +
+          `Using capped amount for indirect cost calculations (not applicable for T&M contracts).`
       );
     }
 

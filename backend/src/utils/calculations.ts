@@ -1,3 +1,5 @@
+// Enhanced backend/src/utils/calculations.ts with FAR compliance improvements
+
 import CompanyRates from "../models/companyRates";
 import { RateStructure } from "../types";
 
@@ -55,17 +57,31 @@ export class RateCalculator {
     annualSalary: number,
     utilizationHours: number
   ): number {
-    if (utilizationHours <= 0) {
-      throw new Error("Utilization hours must be greater than zero");
+    // FAR-compliant calculation: Always divide by 2080 for direct labor rate
+    // Direct labor rate = Annual salary ÷ 2,080 hours (standard work year)
+    // Utilization hours are used for cost recovery and pricing, not rate calculation
+    const STANDARD_WORK_YEAR_HOURS = 2080;
+
+    if (STANDARD_WORK_YEAR_HOURS <= 0) {
+      throw new Error("Standard work year hours must be greater than zero");
     }
-    return annualSalary / utilizationHours;
+
+    return annualSalary / STANDARD_WORK_YEAR_HOURS;
   }
 
   static applyCompensationCap(
     baseSalary: number,
-    compensationCap: number
+    compensationCap: number,
+    contractType?: "FFP" | "T&M" | "CPFF"
   ): number {
     // FAR 31.205-6(p) - Executive compensation limitation
+    // For T&M contracts, the cap doesn't apply because the hourly rates
+    // are fixed and include all elements (wages, overhead, G&A, and profit)
+    if (contractType === "T&M") {
+      return baseSalary; // No cap for T&M contracts
+    }
+
+    // For cost-reimbursement contracts (CPFF) and FFP contracts subject to cost analysis
     return Math.min(baseSalary, compensationCap);
   }
 

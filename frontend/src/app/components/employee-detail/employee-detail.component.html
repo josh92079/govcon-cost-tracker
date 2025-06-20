@@ -1,12 +1,36 @@
+<!-- frontend/src/app/components/employee-detail/employee-detail.component.html -->
 <div class="p-3" *ngIf="employee">
-  <div class="flex justify-content-between align-items-center mb-4">
-    <h1 class="text-3xl font-bold">{{ employee.name }} - Cost Analysis</h1>
-    <p-button
-      label="Back to List"
-      icon="pi pi-arrow-left"
-      (click)="goBack()"
-    ></p-button>
+  <div
+    class="flex flex-wrap justify-content-between align-items-center mb-4 gap-3"
+  >
+    <h1 class="text-3xl font-bold m-0">{{ employee.name }}</h1>
+    <div class="flex gap-2">
+      <p-button
+        label="Edit"
+        icon="pi pi-pencil"
+        (click)="editEmployee()"
+      ></p-button>
+      <p-button
+        label="Back to List"
+        icon="pi pi-arrow-left"
+        (click)="goBack()"
+        severity="secondary"
+      ></p-button>
+    </div>
   </div>
+
+  <!-- Compensation Cap Warning -->
+  <p-message
+    *ngIf="exceedsCompensationCap()"
+    severity="warn"
+    [closable]="false"
+    styleClass="mb-3"
+  >
+    <i class="pi pi-exclamation-triangle mr-2"></i>
+    Employee salary ({{ employee.baseSalary | currency }}) exceeds FAR
+    compensation cap ({{ companyRates?.compensationCap | currency }}). Cap
+    applies to CPFF and FFP contracts but NOT to T&M contracts.
+  </p-message>
 
   <div class="grid">
     <div class="col-12 md:col-6">
@@ -19,10 +43,29 @@
           <div class="col-8">{{ employee.title }}</div>
 
           <div class="col-4 font-bold text-900">Base Salary:</div>
-          <div class="col-8">{{ employee.baseSalary | currency }}</div>
+          <div class="col-8">
+            {{ employee.baseSalary | currency }}
+            <p-tag
+              *ngIf="exceedsCompensationCap()"
+              value="Exceeds Cap"
+              severity="warning"
+              styleClass="ml-2"
+            ></p-tag>
+          </div>
 
           <div class="col-4 font-bold text-900">Hire Date:</div>
           <div class="col-8">{{ employee.hireDate | date }}</div>
+
+          <div class="col-4 font-bold text-900">Utilization Target:</div>
+          <div class="col-8">{{ employee.utilizationTarget }} hours</div>
+
+          <div class="col-4 font-bold text-900">Status:</div>
+          <div class="col-8">
+            <p-tag
+              [value]="employee.active ? 'Active' : 'Inactive'"
+              [severity]="employee.active ? 'success' : 'danger'"
+            ></p-tag>
+          </div>
         </div>
       </p-card>
     </div>
@@ -30,292 +73,454 @@
     <div class="col-12 md:col-6">
       <p-card header="Fringe Benefits">
         <div class="grid">
-          <div class="col-6">Health Insurance:</div>
-          <div class="col-6 text-right font-semibold">
-            {{ employee.FringeBenefit?.healthInsurance | currency }}
-          </div>
-
-          <div class="col-6">Dental Insurance:</div>
-          <div class="col-6 text-right font-semibold">
-            {{ employee.FringeBenefit?.dentalInsurance | currency }}
-          </div>
-
-          <div class="col-6">Vision Insurance:</div>
-          <div class="col-6 text-right font-semibold">
-            {{ employee.FringeBenefit?.visionInsurance | currency }}
-          </div>
-
-          <div class="col-6">401k Match:</div>
-          <div class="col-6 text-right font-semibold">
-            {{ employee.FringeBenefit?.match401k | currency }}
-          </div>
-
-          <div class="col-6">PTO Cost:</div>
-          <div class="col-6 text-right font-semibold">
-            {{ employee.FringeBenefit?.ptoCost | currency }}
-          </div>
-
-          <div class="col-6">Training Budget:</div>
-          <div class="col-6 text-right font-semibold">
-            {{ employee.FringeBenefit?.trainingBudget | currency }}
-          </div>
-        </div>
-        <p-divider></p-divider>
-        <div class="grid">
           <div class="col-6 font-bold text-900">Total Fringe:</div>
-          <div class="col-6 text-right font-bold text-primary text-xl">
-            {{ getTotalFringe() | currency }}
+          <div class="col-6">
+            {{ getTotalFringeBenefits() | currency }}
+            ({{ getFringePercentage() | number : "1.1-1" }}% of salary)
+          </div>
+
+          <div class="col-12 mt-2">
+            <table class="w-full text-sm">
+              <tr *ngIf="employee.FringeBenefit?.healthInsurance">
+                <td class="py-1">Health Insurance:</td>
+                <td class="text-right">
+                  {{ employee.FringeBenefit?.healthInsurance | currency }}
+                </td>
+              </tr>
+              <tr *ngIf="employee.FringeBenefit?.dentalInsurance">
+                <td class="py-1">Dental Insurance:</td>
+                <td class="text-right">
+                  {{ employee.FringeBenefit?.dentalInsurance | currency }}
+                </td>
+              </tr>
+              <tr *ngIf="employee.FringeBenefit?.visionInsurance">
+                <td class="py-1">Vision Insurance:</td>
+                <td class="text-right">
+                  {{ employee.FringeBenefit?.visionInsurance | currency }}
+                </td>
+              </tr>
+              <tr *ngIf="employee.FringeBenefit?.match401k">
+                <td class="py-1">401(k) Match:</td>
+                <td class="text-right">
+                  {{ employee.FringeBenefit?.match401k | currency }}
+                </td>
+              </tr>
+              <tr *ngIf="employee.FringeBenefit?.ptoCost">
+                <td class="py-1">PTO Cost:</td>
+                <td class="text-right">
+                  {{ employee.FringeBenefit?.ptoCost | currency }}
+                </td>
+              </tr>
+              <tr *ngIf="employee.FringeBenefit?.trainingBudget">
+                <td class="py-1">Training Budget:</td>
+                <td class="text-right">
+                  {{ employee.FringeBenefit?.trainingBudget | currency }}
+                </td>
+              </tr>
+            </table>
           </div>
         </div>
       </p-card>
     </div>
   </div>
 
-  <div class="mt-4" *ngIf="costAnalysis">
-    <p-tabView>
-      <p-tabPanel header="1800 Hours Utilization">
-        <div class="grid">
-          <div class="col-12 md:col-6">
-            <h3 class="text-xl font-semibold mb-3">Rate Breakdown</h3>
-            <div class="surface-100 p-3 border-round">
-              <div
-                class="flex justify-content-between py-2 border-bottom-1 surface-border"
-              >
-                <span>Direct Labor Rate:</span>
-                <span class="font-semibold"
-                  >{{
-                    costAnalysis.hours1800.rates.directLaborRate | currency
-                  }}/hr</span
-                >
-              </div>
-              <div
-                class="flex justify-content-between py-2 border-bottom-1 surface-border"
-              >
-                <span>Fringe Rate:</span>
-                <span class="font-semibold"
-                  >{{
-                    costAnalysis.hours1800.rates.fringeRate | number : "1.1-1"
-                  }}%</span
-                >
-              </div>
-              <div
-                class="flex justify-content-between py-2 border-bottom-1 surface-border"
-              >
-                <span>Overhead Rate:</span>
-                <span class="font-semibold"
-                  >{{
-                    costAnalysis.hours1800.rates.overheadRate
-                      | number : "1.1-1"
-                  }}%</span
-                >
-              </div>
-              <div class="flex justify-content-between py-2">
-                <span>G&A Rate:</span>
-                <span class="font-semibold"
-                  >{{
-                    costAnalysis.hours1800.rates.gaRate | number : "1.1-1"
-                  }}%</span
-                >
-              </div>
-            </div>
-          </div>
-          <div class="col-12 md:col-6">
-            <h3 class="text-xl font-semibold mb-3">Cost Buildup</h3>
-            <div class="surface-100 p-3 border-round">
-              <div
-                class="flex justify-content-between py-2 border-bottom-1 surface-border"
-              >
-                <span>Direct Labor:</span>
-                <span class="font-semibold"
-                  >{{
-                    costAnalysis.hours1800.costs.directLabor | currency
-                  }}/hr</span
-                >
-              </div>
-              <div
-                class="flex justify-content-between py-2 border-bottom-1 surface-border"
-              >
-                <span>+ Fringe:</span>
-                <span class="font-semibold"
-                  >{{
-                    costAnalysis.hours1800.costs.fringeCost | currency
-                  }}/hr</span
-                >
-              </div>
-              <div
-                class="flex justify-content-between py-2 border-bottom-1 surface-border"
-              >
-                <span>+ Overhead:</span>
-                <span class="font-semibold"
-                  >{{
-                    costAnalysis.hours1800.costs.overheadCost | currency
-                  }}/hr</span
-                >
-              </div>
-              <div
-                class="flex justify-content-between py-2 border-bottom-1 surface-border"
-              >
-                <span>+ G&A:</span>
-                <span class="font-semibold"
-                  >{{ costAnalysis.hours1800.costs.gaCost | currency }}/hr</span
-                >
-              </div>
-              <div
-                class="flex justify-content-between py-2 border-top-2 surface-border font-bold text-primary"
-              >
-                <span>Total Burdened Cost:</span>
-                <span class="text-xl"
-                  >{{
-                    costAnalysis.hours1800.costs.totalBurdenedCost | currency
-                  }}/hr</span
-                >
-              </div>
-              <div class="flex justify-content-between py-2 font-bold">
-                <span>Wrap Rate:</span>
-                <span class="text-xl">{{
-                  costAnalysis.hours1800.costs.wrapRate | number : "1.2-2"
-                }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="mt-4">
-          <p-card header="Target Billing" styleClass="bg-primary-50">
-            <div class="flex justify-content-between align-items-center">
-              <span class="text-lg"
-                >Target Bill Rate ({{
-                  costAnalysis.hours1800.targetProfitMargin
-                }}% margin):</span
-              >
-              <span class="font-bold text-3xl text-primary">
-                {{ costAnalysis.hours1800.targetBillRate | currency }}/hr
-              </span>
-            </div>
-          </p-card>
-        </div>
-      </p-tabPanel>
-
-      <p-tabPanel header="1860 Hours Utilization">
-        <div class="grid">
-          <div class="col-12 md:col-6">
-            <h3 class="text-xl font-semibold mb-3">Rate Breakdown</h3>
-            <div class="surface-100 p-3 border-round">
-              <div
-                class="flex justify-content-between py-2 border-bottom-1 surface-border"
-              >
-                <span>Direct Labor Rate:</span>
-                <span class="font-semibold"
-                  >{{
-                    costAnalysis.hours1860.rates.directLaborRate | currency
-                  }}/hr</span
-                >
-              </div>
-              <div
-                class="flex justify-content-between py-2 border-bottom-1 surface-border"
-              >
-                <span>Fringe Rate:</span>
-                <span class="font-semibold"
-                  >{{
-                    costAnalysis.hours1860.rates.fringeRate | number : "1.1-1"
-                  }}%</span
-                >
-              </div>
-              <div
-                class="flex justify-content-between py-2 border-bottom-1 surface-border"
-              >
-                <span>Overhead Rate:</span>
-                <span class="font-semibold"
-                  >{{
-                    costAnalysis.hours1860.rates.overheadRate
-                      | number : "1.1-1"
-                  }}%</span
-                >
-              </div>
-              <div class="flex justify-content-between py-2">
-                <span>G&A Rate:</span>
-                <span class="font-semibold"
-                  >{{
-                    costAnalysis.hours1860.rates.gaRate | number : "1.1-1"
-                  }}%</span
-                >
-              </div>
-            </div>
-          </div>
-          <div class="col-12 md:col-6">
-            <h3 class="text-xl font-semibold mb-3">Cost Buildup</h3>
-            <div class="surface-100 p-3 border-round">
-              <div
-                class="flex justify-content-between py-2 border-bottom-1 surface-border"
-              >
-                <span>Direct Labor:</span>
-                <span class="font-semibold"
-                  >{{
-                    costAnalysis.hours1860.costs.directLabor | currency
-                  }}/hr</span
-                >
-              </div>
-              <div
-                class="flex justify-content-between py-2 border-bottom-1 surface-border"
-              >
-                <span>+ Fringe:</span>
-                <span class="font-semibold"
-                  >{{
-                    costAnalysis.hours1860.costs.fringeCost | currency
-                  }}/hr</span
-                >
-              </div>
-              <div
-                class="flex justify-content-between py-2 border-bottom-1 surface-border"
-              >
-                <span>+ Overhead:</span>
-                <span class="font-semibold"
-                  >{{
-                    costAnalysis.hours1860.costs.overheadCost | currency
-                  }}/hr</span
-                >
-              </div>
-              <div
-                class="flex justify-content-between py-2 border-bottom-1 surface-border"
-              >
-                <span>+ G&A:</span>
-                <span class="font-semibold"
-                  >{{ costAnalysis.hours1860.costs.gaCost | currency }}/hr</span
-                >
-              </div>
-              <div
-                class="flex justify-content-between py-2 border-top-2 surface-border font-bold text-primary"
-              >
-                <span>Total Burdened Cost:</span>
-                <span class="text-xl"
-                  >{{
-                    costAnalysis.hours1860.costs.totalBurdenedCost | currency
-                  }}/hr</span
-                >
-              </div>
-              <div class="flex justify-content-between py-2 font-bold">
-                <span>Wrap Rate:</span>
-                <span class="text-xl">{{
-                  costAnalysis.hours1860.costs.wrapRate | number : "1.2-2"
-                }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="mt-4">
-          <p-card header="Target Billing" styleClass="bg-primary-50">
-            <div class="flex justify-content-between align-items-center">
-              <span class="text-lg"
-                >Target Bill Rate ({{
-                  costAnalysis.hours1860.targetProfitMargin
-                }}% margin):</span
-              >
-              <span class="font-bold text-3xl text-primary">
-                {{ costAnalysis.hours1860.targetBillRate | currency }}/hr
-              </span>
-            </div>
-          </p-card>
-        </div>
-      </p-tabPanel>
-    </p-tabView>
+  <!-- Contract Type Impact Analysis -->
+  <div class="mt-4" *ngIf="exceedsCompensationCap()">
+    <p-card header="FAR Compensation Cap Impact by Contract Type">
+      <p-table
+        [value]="[
+          {
+            type: 'Time & Materials (T&M)',
+            impact: getContractTypeImpact('T&M'),
+            description:
+              'Fixed hourly rates include all costs - cap does not apply'
+          },
+          {
+            type: 'Cost Plus Fixed Fee (CPFF)',
+            impact: getContractTypeImpact('CPFF'),
+            description: 'Cap applies to indirect cost calculations'
+          },
+          {
+            type: 'Firm Fixed Price (FFP)',
+            impact: getContractTypeImpact('FFP'),
+            description: 'Cap applies when subject to cost analysis'
+          }
+        ]"
+        styleClass="p-datatable-sm"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Contract Type</th>
+            <th>Compensation Impact</th>
+            <th>Description</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-item>
+          <tr>
+            <td class="font-semibold">{{ item.type }}</td>
+            <td>
+              <p-tag
+                [value]="item.impact"
+                [severity]="
+                  item.impact.includes('No cap') ? 'success' : 'warning'
+                "
+              ></p-tag>
+            </td>
+            <td class="text-sm">{{ item.description }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-card>
   </div>
+
+  <!-- Cost Analysis -->
+  <div class="mt-4" *ngIf="costAnalysis">
+    <p-card header="Cost Analysis">
+      <div class="flex justify-content-end mb-3">
+        <p-button
+          label="Export Analysis"
+          icon="pi pi-download"
+          (click)="exportCostAnalysis()"
+          severity="secondary"
+          size="small"
+        ></p-button>
+      </div>
+
+      <p-tabView>
+        <p-tabPanel header="1800 Hours">
+          <div class="grid">
+            <div class="col-12 md:col-6">
+              <h5>Hourly Rates</h5>
+              <table class="w-full">
+                <tr>
+                  <td class="py-2">Direct Labor Rate:</td>
+                  <td class="text-right font-semibold">
+                    {{
+                      costAnalysis?.hours1800?.rates?.directLaborRate
+                        | currency
+                    }}/hr
+                    <i
+                      class="pi pi-info-circle ml-1 text-sm"
+                      pTooltip="Calculated as Salary ÷ 2,080 hours"
+                    ></i>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="py-2">Fringe Rate:</td>
+                  <td class="text-right">
+                    {{
+                      costAnalysis?.hours1800?.rates?.fringeRate
+                        | number : "1.1-1"
+                    }}%
+                  </td>
+                </tr>
+                <tr>
+                  <td class="py-2">Overhead Rate:</td>
+                  <td class="text-right">
+                    {{
+                      costAnalysis?.hours1800?.rates?.overheadRate
+                        | number : "1.1-1"
+                    }}%
+                  </td>
+                </tr>
+                <tr>
+                  <td class="py-2">G&A Rate:</td>
+                  <td class="text-right">
+                    {{
+                      costAnalysis?.hours1800?.rates?.gaRate | number : "1.1-1"
+                    }}%
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <div class="col-12 md:col-6">
+              <h5>Cost Buildup</h5>
+              <table class="w-full">
+                <tr>
+                  <td class="py-2">Direct Labor:</td>
+                  <td class="text-right">
+                    {{
+                      costAnalysis?.hours1800?.costs?.directLabor | currency
+                    }}/hr
+                  </td>
+                </tr>
+                <tr>
+                  <td class="py-2">+ Fringe:</td>
+                  <td class="text-right">
+                    {{
+                      costAnalysis?.hours1800?.costs?.fringeCost | currency
+                    }}/hr
+                  </td>
+                </tr>
+                <tr>
+                  <td class="py-2">+ Overhead:</td>
+                  <td class="text-right">
+                    {{
+                      costAnalysis?.hours1800?.costs?.overheadCost | currency
+                    }}/hr
+                  </td>
+                </tr>
+                <tr>
+                  <td class="py-2">+ G&A:</td>
+                  <td class="text-right">
+                    {{ costAnalysis?.hours1800?.costs?.gaCost | currency }}/hr
+                  </td>
+                </tr>
+                <tr class="border-top-1 surface-border">
+                  <td class="py-2 font-bold">Total Burdened Cost:</td>
+                  <td class="text-right font-bold text-primary">
+                    {{
+                      costAnalysis?.hours1800?.costs?.totalBurdenedCost
+                        | currency
+                    }}/hr
+                  </td>
+                </tr>
+                <tr>
+                  <td class="py-2">Wrap Rate:</td>
+                  <td class="text-right">
+                    <span
+                      [ngClass]="{
+                        'text-warning-500':
+                          costAnalysis?.hours1800?.costs?.wrapRate &&
+                          (costAnalysis.hours1800.costs.wrapRate < 1.5 ||
+                            costAnalysis.hours1800.costs.wrapRate > 3.5),
+                        'text-danger-500':
+                          costAnalysis?.hours1800?.costs?.wrapRate &&
+                          costAnalysis.hours1800.costs.wrapRate > 4.0
+                      }"
+                    >
+                      {{
+                        costAnalysis?.hours1800?.costs?.wrapRate
+                          | number : "1.2-2"
+                      }}x
+                    </span>
+                  </td>
+                </tr>
+              </table>
+
+              <div class="mt-3 p-3 surface-100 border-round">
+                <div class="font-semibold mb-2">
+                  Annual Projections (1800 hrs):
+                </div>
+                <div class="text-sm">
+                  <div>
+                    Annual Cost:
+                    {{
+                      (costAnalysis?.hours1800?.costs?.totalBurdenedCost || 0) *
+                        1800 | currency
+                    }}
+                  </div>
+                  <div>
+                    Target Bill Rate:
+                    {{ costAnalysis?.hours1800?.targetBillRate | currency }}/hr
+                  </div>
+                  <div>
+                    Target Annual Revenue:
+                    {{
+                      (costAnalysis?.hours1800?.targetBillRate || 0) * 1800
+                        | currency
+                    }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </p-tabPanel>
+
+        <p-tabPanel header="1860 Hours">
+          <div class="grid">
+            <div class="col-12 md:col-6">
+              <h5>Hourly Rates</h5>
+              <table class="w-full">
+                <tr>
+                  <td class="py-2">Direct Labor Rate:</td>
+                  <td class="text-right font-semibold">
+                    {{
+                      costAnalysis?.hours1860?.rates?.directLaborRate
+                        | currency
+                    }}/hr
+                    <i
+                      class="pi pi-info-circle ml-1 text-sm"
+                      pTooltip="Calculated as Salary ÷ 2,080 hours"
+                    ></i>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="py-2">Fringe Rate:</td>
+                  <td class="text-right">
+                    {{
+                      costAnalysis?.hours1860?.rates?.fringeRate
+                        | number : "1.1-1"
+                    }}%
+                  </td>
+                </tr>
+                <tr>
+                  <td class="py-2">Overhead Rate:</td>
+                  <td class="text-right">
+                    {{
+                      costAnalysis?.hours1860?.rates?.overheadRate
+                        | number : "1.1-1"
+                    }}%
+                  </td>
+                </tr>
+                <tr>
+                  <td class="py-2">G&A Rate:</td>
+                  <td class="text-right">
+                    {{
+                      costAnalysis?.hours1860?.rates?.gaRate | number : "1.1-1"
+                    }}%
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <div class="col-12 md:col-6">
+              <h5>Cost Buildup</h5>
+              <table class="w-full">
+                <tr>
+                  <td class="py-2">Direct Labor:</td>
+                  <td class="text-right">
+                    {{
+                      costAnalysis?.hours1860?.costs?.directLabor | currency
+                    }}/hr
+                  </td>
+                </tr>
+                <tr>
+                  <td class="py-2">+ Fringe:</td>
+                  <td class="text-right">
+                    {{
+                      costAnalysis?.hours1860?.costs?.fringeCost | currency
+                    }}/hr
+                  </td>
+                </tr>
+                <tr>
+                  <td class="py-2">+ Overhead:</td>
+                  <td class="text-right">
+                    {{
+                      costAnalysis?.hours1860?.costs?.overheadCost | currency
+                    }}/hr
+                  </td>
+                </tr>
+                <tr>
+                  <td class="py-2">+ G&A:</td>
+                  <td class="text-right">
+                    {{ costAnalysis?.hours1860?.costs?.gaCost | currency }}/hr
+                  </td>
+                </tr>
+                <tr class="border-top-1 surface-border">
+                  <td class="py-2 font-bold">Total Burdened Cost:</td>
+                  <td class="text-right font-bold text-primary">
+                    {{
+                      costAnalysis?.hours1860?.costs?.totalBurdenedCost
+                        | currency
+                    }}/hr
+                  </td>
+                </tr>
+                <tr>
+                  <td class="py-2">Wrap Rate:</td>
+                  <td class="text-right">
+                    <span
+                      [ngClass]="{
+                        'text-warning-500':
+                          costAnalysis?.hours1860?.costs?.wrapRate &&
+                          (costAnalysis.hours1860.costs.wrapRate < 1.5 ||
+                            costAnalysis.hours1860.costs.wrapRate > 3.5),
+                        'text-danger-500':
+                          costAnalysis?.hours1860?.costs?.wrapRate &&
+                          costAnalysis.hours1860.costs.wrapRate > 4.0
+                      }"
+                    >
+                      {{
+                        costAnalysis?.hours1860?.costs?.wrapRate
+                          | number : "1.2-2"
+                      }}x
+                    </span>
+                  </td>
+                </tr>
+              </table>
+
+              <div class="mt-3 p-3 surface-100 border-round">
+                <div class="font-semibold mb-2">
+                  Annual Projections (1860 hrs):
+                </div>
+                <div class="text-sm">
+                  <div>
+                    Annual Cost:
+                    {{
+                      (costAnalysis?.hours1860?.costs?.totalBurdenedCost || 0) *
+                        1860 | currency
+                    }}
+                  </div>
+                  <div>
+                    Target Bill Rate:
+                    {{ costAnalysis?.hours1860?.targetBillRate | currency }}/hr
+                  </div>
+                  <div>
+                    Target Annual Revenue:
+                    {{
+                      (costAnalysis?.hours1860?.targetBillRate || 0) * 1860
+                        | currency
+                    }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </p-tabPanel>
+      </p-tabView>
+    </p-card>
+  </div>
+
+  <!-- Current Contracts -->
+  <div class="mt-4" *ngIf="employee.Contracts && employee.Contracts.length > 0">
+    <p-card header="Current Contract Assignments">
+      <p-table [value]="employee.Contracts" styleClass="p-datatable-striped">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Contract Number</th>
+            <th>Contract Name</th>
+            <th>Type</th>
+            <th>Allocation</th>
+            <th>Bill Rate</th>
+            <th>Actions</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-contract>
+          <tr>
+            <td class="font-semibold">{{ contract.contractNumber }}</td>
+            <td>{{ contract.contractName }}</td>
+            <td>
+              <p-tag
+                [value]="contract.contractType"
+                [severity]="
+                  contract.contractType === 'T&M' ? 'success' : 'info'
+                "
+              ></p-tag>
+            </td>
+            <td>{{ contract.EmployeeContract?.allocationPercentage }}%</td>
+            <td>{{ contract.EmployeeContract?.billRate | currency }}/hr</td>
+            <td>
+              <p-button
+                icon="pi pi-external-link"
+                [rounded]="true"
+                [text]="true"
+                (click)="viewContract(contract.id)"
+                pTooltip="View Contract"
+              ></p-button>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-card>
+  </div>
+</div>
+
+<!-- Loading State -->
+<div
+  *ngIf="loading"
+  class="flex justify-content-center align-items-center"
+  style="height: 400px"
+>
+  <p-progressSpinner></p-progressSpinner>
 </div>

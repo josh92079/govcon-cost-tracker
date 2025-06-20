@@ -144,10 +144,13 @@ export class RateCalculatorComponent implements OnInit {
       contractType: this.inputs.contractType || undefined,
     };
 
+    console.log('Calculating rates with contract type:', payload.contractType);
+
     this.apiService.calculateRates(payload).subscribe({
       next: (data) => {
         this.results = data;
         this.loading = false;
+        console.log('Results received:', data);
       },
       error: (error) => {
         this.error = error.error?.error || 'Error calculating rates';
@@ -229,13 +232,44 @@ export class RateCalculatorComponent implements OnInit {
   }
 
   hasValidationWarnings(): boolean {
+    // For T&M contracts, filter out compensation cap warnings
+    if (
+      this.inputs.contractType === 'T&M' &&
+      this.results?.validation?.warnings?.length > 0
+    ) {
+      const nonCapWarnings = this.results.validation.warnings.filter(
+        (w: string) => !w.includes('compensation cap')
+      );
+      return nonCapWarnings.length > 0;
+    }
     return this.results?.validation?.warnings?.length > 0;
   }
 
-  getContractTypeLabel(type: string | null | undefined): string {
-    if (!type) return 'Default';
-    const option = this.contractTypeOptions.find((opt) => opt.value === type);
-    return option?.label || type;
+  getFilteredWarnings(): string[] {
+    if (!this.results?.validation?.warnings) return [];
+
+    // For T&M contracts, filter out compensation cap warnings
+    if (this.inputs.contractType === 'T&M') {
+      return this.results.validation.warnings.filter(
+        (w: string) => !w.includes('compensation cap')
+      );
+    }
+
+    return this.results.validation.warnings;
+  }
+
+  isCompensationCapApplicable(): boolean {
+    return (
+      this.inputs.contractType !== 'T&M' &&
+      this.inputs.baseSalary > (this.companyRates?.compensationCap || 0)
+    );
+  }
+
+  shouldShowCapExemptionNotice(): boolean {
+    return (
+      this.inputs.contractType === 'T&M' &&
+      this.inputs.baseSalary > (this.companyRates?.compensationCap || 0)
+    );
   }
 
   exportResults() {

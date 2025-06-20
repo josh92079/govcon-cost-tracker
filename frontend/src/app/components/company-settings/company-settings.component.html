@@ -1,107 +1,211 @@
+<!-- frontend/src/app/components/company-settings/company-settings.component.html -->
 <div class="p-3">
   <h1 class="text-3xl font-bold mb-2">Company Settings</h1>
-  <p class="text-500 mb-4">Configure company-wide rates and settings</p>
+  <p class="text-500 mb-4">
+    Configure indirect rates and compensation limits for {{ rates.fiscalYear }}
+  </p>
 
-  <p-card header="Company Rates" *ngIf="rates">
-    <form (ngSubmit)="saveRates()">
-      <div class="formgrid grid">
-        <div class="field col-12 md:col-6">
-          <label for="fiscalYear" class="font-semibold mb-2 block"
-            >Fiscal Year</label
-          >
+  <div class="grid">
+    <div class="col-12 lg:col-8">
+      <p-card header="Indirect Rate Configuration">
+        <div class="field">
+          <label for="overhead" class="font-semibold mb-2 block">
+            Overhead Rate
+            <i
+              class="pi pi-info-circle ml-1 text-sm"
+              pTooltip="Applied to direct labor + fringe"
+            ></i>
+          </label>
           <p-inputNumber
-            id="fiscalYear"
-            [(ngModel)]="rates.fiscalYear"
-            name="fiscalYear"
-            [useGrouping]="false"
-            [disabled]="true"
+            id="overhead"
+            [(ngModel)]="rates.overheadRate"
+            suffix="%"
+            [minFractionDigits]="1"
+            [maxFractionDigits]="2"
+            [min]="0"
+            [max]="100"
             class="w-full"
           ></p-inputNumber>
         </div>
 
-        <div class="field col-12 md:col-6">
-          <label for="compensationCap" class="font-semibold mb-2 block"
-            >FAR Compensation Cap</label
-          >
+        <div class="field">
+          <label for="ga" class="font-semibold mb-2 block">
+            G&A Rate
+            <i
+              class="pi pi-info-circle ml-1 text-sm"
+              pTooltip="Applied to direct labor + fringe + overhead"
+            ></i>
+          </label>
           <p-inputNumber
-            id="compensationCap"
+            id="ga"
+            [(ngModel)]="rates.gaRate"
+            suffix="%"
+            [minFractionDigits]="1"
+            [maxFractionDigits]="2"
+            [min]="0"
+            [max]="100"
+            class="w-full"
+          ></p-inputNumber>
+        </div>
+
+        <div class="field">
+          <label for="profit" class="font-semibold mb-2 block">
+            Target Profit Margin
+            <i
+              class="pi pi-info-circle ml-1 text-sm"
+              pTooltip="Applied to fully burdened cost to calculate target bill rate"
+            ></i>
+          </label>
+          <p-inputNumber
+            id="profit"
+            [(ngModel)]="rates.targetProfitMargin"
+            suffix="%"
+            [minFractionDigits]="1"
+            [maxFractionDigits]="2"
+            [min]="0"
+            [max]="50"
+            class="w-full"
+          ></p-inputNumber>
+        </div>
+
+        <p-divider></p-divider>
+
+        <div class="field">
+          <label for="cap" class="font-semibold mb-2 block">
+            FAR Compensation Cap
+            <i
+              class="pi pi-info-circle ml-1 text-sm"
+              pTooltip="FAR 31.205-6(p) limit on allowable compensation for indirect cost calculations"
+            ></i>
+          </label>
+          <p-inputNumber
+            id="cap"
             [(ngModel)]="rates.compensationCap"
-            name="compensationCap"
             mode="currency"
             currency="USD"
             [minFractionDigits]="0"
-            class="w-full"
-          ></p-inputNumber>
-        </div>
-
-        <div class="field col-12 md:col-4">
-          <label for="overheadRate" class="font-semibold mb-2 block"
-            >Overhead Rate (%)</label
-          >
-          <p-inputNumber
-            id="overheadRate"
-            [(ngModel)]="overheadRatePercent"
-            name="overheadRate"
-            suffix="%"
-            [minFractionDigits]="1"
             [min]="0"
-            [max]="100"
             class="w-full"
           ></p-inputNumber>
-        </div>
 
-        <div class="field col-12 md:col-4">
-          <label for="gaRate" class="font-semibold mb-2 block"
-            >G&A Rate (%)</label
+          <p-message
+            severity="info"
+            [closable]="false"
+            styleClass="mt-2 w-full"
           >
-          <p-inputNumber
-            id="gaRate"
-            [(ngModel)]="gaRatePercent"
-            name="gaRate"
-            suffix="%"
-            [minFractionDigits]="1"
-            [min]="0"
-            [max]="100"
-            class="w-full"
-          ></p-inputNumber>
+            <i class="pi pi-info-circle mr-2"></i>
+            This cap applies to CPFF and FFP contracts but NOT to T&M contracts,
+            where hourly rates are fixed and fully burdened.
+          </p-message>
         </div>
 
-        <div class="field col-12 md:col-4">
-          <label for="targetProfitMargin" class="font-semibold mb-2 block"
-            >Target Profit Margin (%)</label
-          >
-          <p-inputNumber
-            id="targetProfitMargin"
-            [(ngModel)]="targetProfitPercent"
-            name="targetProfitMargin"
-            suffix="%"
-            [minFractionDigits]="1"
-            [min]="0"
-            [max]="100"
-            class="w-full"
-          ></p-inputNumber>
+        <div class="flex justify-content-end gap-2 mt-4">
+          <p-button
+            label="Cancel"
+            icon="pi pi-times"
+            (click)="cancelChanges()"
+            [disabled]="!hasChanges() || saving"
+            severity="secondary"
+          ></p-button>
+          <p-button
+            label="Save Changes"
+            icon="pi pi-save"
+            (click)="saveRates()"
+            [disabled]="!hasChanges() || saving"
+            [loading]="saving"
+          ></p-button>
         </div>
-      </div>
+      </p-card>
+    </div>
 
-      <div class="flex justify-content-end">
-        <p-button type="submit" label="Save Rates" icon="pi pi-save"></p-button>
-      </div>
-    </form>
-  </p-card>
-
-  <div class="mt-4">
-    <p-card header="Wrap Rate Preview" *ngIf="rates">
-      <div class="text-center">
-        <h3 class="text-xl font-semibold mb-3">
-          Current Wrap Rate Calculation
-        </h3>
-        <p class="text-500 mb-3">
-          $1 × (1 + {{ overheadRatePercent }}%) × (1 + {{ gaRatePercent }}%) =
+    <div class="col-12 lg:col-4">
+      <p-card header="Wrap Rate Calculator">
+        <p class="text-sm mb-3">
+          Example calculation with current rates and 35% fringe:
         </p>
-        <p class="text-5xl font-bold text-primary">
-          {{ calculateWrapRate() | number : "1.2-2" }}
-        </p>
-      </div>
-    </p-card>
+
+        <div class="surface-100 p-3 border-round">
+          <div class="text-sm mb-2">
+            <div>Direct Labor: $100.00</div>
+            <div>+ Fringe (35%): $35.00</div>
+            <div>
+              + Overhead ({{ rates.overheadRate }}%): ${{
+                (135 * rates.overheadRate) / 100 | number : "1.2-2"
+              }}
+            </div>
+            <div>
+              + G&A ({{ rates.gaRate }}%): ${{
+                (135 * (1 + rates.overheadRate / 100) * rates.gaRate) / 100
+                  | number : "1.2-2"
+              }}
+            </div>
+          </div>
+          <p-divider></p-divider>
+          <div class="font-bold">
+            Wrap Rate:
+            <span
+              [ngClass]="{
+                'text-warning-500':
+                  calculateExampleWrapRate() < 1.5 ||
+                  calculateExampleWrapRate() > 3.5,
+                'text-danger-500': calculateExampleWrapRate() > 4.0,
+                'text-success-500':
+                  calculateExampleWrapRate() >= 1.5 &&
+                  calculateExampleWrapRate() <= 3.5
+              }"
+            >
+              {{ calculateExampleWrapRate() | number : "1.2-2" }}x
+            </span>
+          </div>
+        </div>
+
+        <div class="mt-3 text-sm">
+          <p class="mb-2 font-semibold">Typical Wrap Rate Ranges:</p>
+          <div class="flex align-items-center gap-2 mb-1">
+            <i class="pi pi-circle-fill text-success-500 text-xs"></i>
+            <span>1.8 - 3.5x: Normal range</span>
+          </div>
+          <div class="flex align-items-center gap-2 mb-1">
+            <i class="pi pi-circle-fill text-warning-500 text-xs"></i>
+            <span>&lt; 1.5x: Unusually low</span>
+          </div>
+          <div class="flex align-items-center gap-2">
+            <i class="pi pi-circle-fill text-danger-500 text-xs"></i>
+            <span>&gt; 4.0x: May impact competitiveness</span>
+          </div>
+        </div>
+      </p-card>
+
+      <p-card header="Contract Type Guidelines" styleClass="mt-3">
+        <div class="text-sm">
+          <div class="mb-3">
+            <div class="font-semibold text-primary mb-1">T&M Contracts</div>
+            <ul class="pl-3 m-0">
+              <li>Fixed hourly rates (fully burdened)</li>
+              <li>NO compensation cap applied</li>
+              <li>Rates include wages, overhead, G&A, profit</li>
+            </ul>
+          </div>
+
+          <div class="mb-3">
+            <div class="font-semibold text-primary mb-1">CPFF Contracts</div>
+            <ul class="pl-3 m-0">
+              <li>Cost reimbursement + fixed fee</li>
+              <li>Compensation cap APPLIES</li>
+              <li>Fee limited to 10% per FAR</li>
+            </ul>
+          </div>
+
+          <div>
+            <div class="font-semibold text-primary mb-1">FFP Contracts</div>
+            <ul class="pl-3 m-0">
+              <li>Fixed total price</li>
+              <li>Cap applies if subject to cost analysis</li>
+              <li>Higher profit margins allowed</li>
+            </ul>
+          </div>
+        </div>
+      </p-card>
+    </div>
   </div>
 </div>

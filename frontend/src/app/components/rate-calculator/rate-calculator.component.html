@@ -17,6 +17,9 @@
     {{ companyRates.gaRate }}% | Target Profit
     {{ companyRates.targetProfitMargin }}% | Compensation Cap
     {{ companyRates.compensationCap | currency }}
+    <span *ngIf="inputs.contractType === 'T&M'" class="font-italic">
+      (cap not applicable for T&M)
+    </span>
   </p-message>
 
   <p-tabView>
@@ -50,7 +53,7 @@
                 Utilization Hours
                 <i
                   class="pi pi-info-circle ml-1 text-sm"
-                  pTooltip="Billable hours per year"
+                  pTooltip="Billable/productive hours per year. Used for annual projections, NOT for calculating direct labor rate which always uses 2,080 hours per FAR"
                 ></i>
               </label>
               <p-dropdown
@@ -68,7 +71,7 @@
                 Contract Type (Optional)
                 <i
                   class="pi pi-info-circle ml-1 text-sm"
-                  pTooltip="Affects profit margin calculations"
+                  pTooltip="Affects profit margin calculations and FAR compensation cap applicability. T&M contracts are exempt from the cap."
                 ></i>
               </label>
               <p-dropdown
@@ -199,9 +202,23 @@
               [closable]="false"
               styleClass="mb-3"
             >
-              <div *ngFor="let warning of results.validation.warnings">
+              <div *ngFor="let warning of getFilteredWarnings()">
                 <i class="pi pi-exclamation-triangle mr-2"></i>{{ warning }}
               </div>
+            </p-message>
+
+            <!-- Compensation Cap Notice for T&M -->
+            <p-message
+              *ngIf="shouldShowCapExemptionNotice()"
+              severity="info"
+              [closable]="false"
+              styleClass="mb-3"
+            >
+              <i class="pi pi-info-circle mr-2"></i>
+              FAR compensation cap of
+              {{ companyRates?.compensationCap | currency }} does not apply to
+              T&M contracts. Full salary of
+              {{ inputs.baseSalary | currency }} is used for all calculations.
             </p-message>
 
             <!-- Rate Breakdown -->
@@ -211,7 +228,13 @@
                 <div
                   class="flex justify-content-between py-2 border-bottom-1 surface-border"
                 >
-                  <span>Direct Labor Rate:</span>
+                  <span>
+                    Direct Labor Rate:
+                    <i
+                      class="pi pi-info-circle ml-1 text-sm"
+                      pTooltip="Calculated as Annual Salary ÷ 2,080 hours per FAR standards"
+                    ></i>
+                  </span>
                   <span class="font-semibold">
                     {{ results.rates.directLaborRate | currency }}/hr
                   </span>
