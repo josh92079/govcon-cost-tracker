@@ -230,6 +230,11 @@ export class RateCalculatorComponent implements OnInit {
     if (margin < 10) return 'warning';
     return 'success';
   }
+  getContractTypeLabel(type: string | null | undefined): string {
+    if (!type) return 'Default';
+    const option = this.contractTypeOptions.find((opt) => opt.value === type);
+    return option?.label || type;
+  }
 
   hasValidationWarnings(): boolean {
     // For T&M contracts, filter out compensation cap warnings
