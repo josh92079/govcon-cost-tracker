@@ -1,561 +1,331 @@
-<!-- frontend/src/app/components/rate-calculator/rate-calculator.component.html -->
 <div class="p-3">
   <h1 class="text-3xl font-bold mb-2">Rate Calculator</h1>
   <p class="text-500 mb-4">
-    Calculate FAR-compliant rates for prospective employees or contract
-    proposals
+    Calculate rates for prospective employees or contract proposals
   </p>
 
-  <!-- Company Rates Info -->
-  <p-message
-    *ngIf="companyRates"
-    severity="info"
-    [closable]="false"
-    styleClass="mb-3"
-  >
-    Current Rates: Overhead {{ companyRates.overheadRate }}% | G&A
-    {{ companyRates.gaRate }}% | Target Profit
-    {{ companyRates.targetProfitMargin }}% | Compensation Cap
-    {{ companyRates.compensationCap | currency }}
-    <span *ngIf="inputs.contractType === 'T&M'" class="font-italic">
-      (cap not applicable for T&M)
-    </span>
-  </p-message>
-
-  <p-tabView>
-    <!-- Single Calculation Tab -->
-    <p-tabPanel header="Single Calculation" leftIcon="pi pi-calculator">
-      <div class="grid">
-        <div class="col-12 md:col-6">
-          <p-card header="Input Parameters">
-            <div class="field">
-              <label for="baseSalary" class="font-semibold mb-2 block">
-                Base Salary
-                <i
-                  class="pi pi-info-circle ml-1 text-sm"
-                  pTooltip="Annual base salary before benefits"
-                ></i>
-              </label>
-              <p-inputNumber
-                id="baseSalary"
-                [(ngModel)]="inputs.baseSalary"
-                mode="currency"
-                currency="USD"
-                [minFractionDigits]="0"
-                [min]="0"
-                [max]="500000"
-                class="w-full"
-              ></p-inputNumber>
-            </div>
-
-            <div class="field">
-              <label for="utilizationHours" class="font-semibold mb-2 block">
-                Utilization Hours
-                <i
-                  class="pi pi-info-circle ml-1 text-sm"
-                  pTooltip="Billable/productive hours per year. Used for annual projections, NOT for calculating direct labor rate which always uses 2,080 hours per FAR"
-                ></i>
-              </label>
-              <p-dropdown
-                id="utilizationHours"
-                [(ngModel)]="inputs.utilizationHours"
-                [options]="utilizationOptions"
-                optionLabel="label"
-                optionValue="value"
-                class="w-full"
-              ></p-dropdown>
-            </div>
-
-            <div class="field">
-              <label for="contractType" class="font-semibold mb-2 block">
-                Contract Type (Optional)
-                <i
-                  class="pi pi-info-circle ml-1 text-sm"
-                  pTooltip="Affects profit margin calculations and FAR compensation cap applicability. T&M contracts are exempt from the cap."
-                ></i>
-              </label>
-              <p-dropdown
-                id="contractType"
-                [(ngModel)]="inputs.contractType"
-                [options]="contractTypeOptions"
-                optionLabel="label"
-                optionValue="value"
-                class="w-full"
-              ></p-dropdown>
-            </div>
-
-            <p-divider></p-divider>
-
-            <h4 class="text-lg font-semibold mb-3">
-              Fringe Benefits
-              <span class="text-sm font-normal">
-                (Total: {{ getTotalFringeBenefits() | currency }} -
-                {{ getFringePercentage() | number : "1.1-1" }}% of salary)
-              </span>
-            </h4>
-            <div class="formgrid grid">
-              <div class="field col-6">
-                <label for="health" class="font-medium text-sm mb-2 block">
-                  Health Insurance
-                </label>
-                <p-inputNumber
-                  id="health"
-                  [(ngModel)]="inputs.fringeBenefits.healthInsurance"
-                  mode="currency"
-                  currency="USD"
-                  [minFractionDigits]="0"
-                  [min]="0"
-                  class="w-full"
-                ></p-inputNumber>
-              </div>
-              <div class="field col-6">
-                <label for="dental" class="font-medium text-sm mb-2 block">
-                  Dental Insurance
-                </label>
-                <p-inputNumber
-                  id="dental"
-                  [(ngModel)]="inputs.fringeBenefits.dentalInsurance"
-                  mode="currency"
-                  currency="USD"
-                  [minFractionDigits]="0"
-                  [min]="0"
-                  class="w-full"
-                ></p-inputNumber>
-              </div>
-              <div class="field col-6">
-                <label for="vision" class="font-medium text-sm mb-2 block">
-                  Vision Insurance
-                </label>
-                <p-inputNumber
-                  id="vision"
-                  [(ngModel)]="inputs.fringeBenefits.visionInsurance"
-                  mode="currency"
-                  currency="USD"
-                  [minFractionDigits]="0"
-                  [min]="0"
-                  class="w-full"
-                ></p-inputNumber>
-              </div>
-              <div class="field col-6">
-                <label for="401k" class="font-medium text-sm mb-2 block">
-                  401(k) Match
-                </label>
-                <p-inputNumber
-                  id="401k"
-                  [(ngModel)]="inputs.fringeBenefits.match401k"
-                  mode="currency"
-                  currency="USD"
-                  [minFractionDigits]="0"
-                  [min]="0"
-                  class="w-full"
-                ></p-inputNumber>
-              </div>
-              <div class="field col-6">
-                <label for="pto" class="font-medium text-sm mb-2 block">
-                  PTO Cost
-                </label>
-                <p-inputNumber
-                  id="pto"
-                  [(ngModel)]="inputs.fringeBenefits.ptoCost"
-                  mode="currency"
-                  currency="USD"
-                  [minFractionDigits]="0"
-                  [min]="0"
-                  class="w-full"
-                ></p-inputNumber>
-              </div>
-              <div class="field col-6">
-                <label for="training" class="font-medium text-sm mb-2 block">
-                  Training Budget
-                </label>
-                <p-inputNumber
-                  id="training"
-                  [(ngModel)]="inputs.fringeBenefits.trainingBudget"
-                  mode="currency"
-                  currency="USD"
-                  [minFractionDigits]="0"
-                  [min]="0"
-                  class="w-full"
-                ></p-inputNumber>
-              </div>
-            </div>
-
-            <div class="flex justify-content-center mt-4">
-              <p-button
-                label="Calculate Rates"
-                icon="pi pi-calculator"
-                (click)="calculateRates()"
-                [loading]="loading"
-                [disabled]="loading"
-                class="w-full md:w-auto"
-              ></p-button>
-            </div>
-          </p-card>
+  <div class="grid">
+    <div class="col-12 md:col-6">
+      <p-card header="Input Parameters">
+        <div class="field">
+          <label for="baseSalary" class="font-semibold mb-2 block"
+            >Base Salary
+            <i
+              class="pi pi-info-circle text-sm"
+              pTooltip="Annual base salary before any benefits or multipliers"
+            ></i
+          ></label>
+          <p-inputNumber
+            id="baseSalary"
+            [(ngModel)]="inputs.baseSalary"
+            (ngModelChange)="onSalaryChange()"
+            mode="currency"
+            currency="USD"
+            [minFractionDigits]="0"
+            class="w-full"
+          ></p-inputNumber>
         </div>
 
-        <div class="col-12 md:col-6">
-          <p-card header="Calculation Results" *ngIf="results">
-            <!-- Validation Warnings -->
-            <p-message
-              *ngIf="hasValidationWarnings()"
-              severity="warn"
-              [closable]="false"
-              styleClass="mb-3"
-            >
-              <div *ngFor="let warning of getFilteredWarnings()">
-                <i class="pi pi-exclamation-triangle mr-2"></i>{{ warning }}
-              </div>
-            </p-message>
+        <div class="field">
+          <label for="utilizationHours" class="font-semibold mb-2 block"
+            >Utilization Hours
+            <i
+              class="pi pi-info-circle text-sm"
+              pTooltip="Expected billable hours per year"
+            ></i
+          ></label>
+          <p-dropdown
+            id="utilizationHours"
+            [(ngModel)]="inputs.utilizationHours"
+            [options]="utilizationOptions"
+            optionLabel="label"
+            optionValue="value"
+            class="w-full"
+          ></p-dropdown>
+        </div>
 
-            <!-- Compensation Cap Notice for T&M -->
-            <p-message
-              *ngIf="shouldShowCapExemptionNotice()"
-              severity="info"
-              [closable]="false"
-              styleClass="mb-3"
-            >
-              <i class="pi pi-info-circle mr-2"></i>
-              FAR compensation cap of
-              {{ companyRates?.compensationCap | currency }} does not apply to
-              T&M contracts. Full salary of
-              {{ inputs.baseSalary | currency }} is used for all calculations.
-            </p-message>
+        <div class="field">
+          <label for="contractType" class="font-semibold mb-2 block"
+            >Contract Type (Optional)
+            <i
+              class="pi pi-info-circle text-sm"
+              pTooltip="FAR compensation cap applies to FFP and CPFF contracts only"
+            ></i
+          ></label>
+          <p-dropdown
+            id="contractType"
+            [(ngModel)]="inputs.contractType"
+            (ngModelChange)="onContractTypeChange()"
+            [options]="contractTypes"
+            optionLabel="label"
+            optionValue="value"
+            class="w-full"
+          ></p-dropdown>
+        </div>
 
-            <!-- Rate Breakdown -->
-            <div class="mb-4">
-              <h4 class="text-lg font-semibold mb-3">Rate Breakdown</h4>
-              <div class="surface-100 p-3 border-round">
-                <div
-                  class="flex justify-content-between py-2 border-bottom-1 surface-border"
-                >
-                  <span>
-                    Direct Labor Rate:
-                    <i
-                      class="pi pi-info-circle ml-1 text-sm"
-                      pTooltip="Calculated as Annual Salary ÷ 2,080 hours per FAR standards"
-                    ></i>
-                  </span>
-                  <span class="font-semibold">
-                    {{ results.rates.directLaborRate | currency }}/hr
-                  </span>
-                </div>
-                <div
-                  class="flex justify-content-between py-2 border-bottom-1 surface-border"
-                >
-                  <span>Fringe Rate:</span>
-                  <span class="font-semibold">
-                    {{ results.rates.fringeRate | number : "1.1-1" }}%
-                  </span>
-                </div>
-                <div
-                  class="flex justify-content-between py-2 border-bottom-1 surface-border"
-                >
-                  <span>Overhead Rate:</span>
-                  <span class="font-semibold">
-                    {{ results.rates.overheadRate | number : "1.1-1" }}%
-                  </span>
-                </div>
-                <div class="flex justify-content-between py-2">
-                  <span>G&A Rate:</span>
-                  <span class="font-semibold">
-                    {{ results.rates.gaRate | number : "1.1-1" }}%
-                  </span>
-                </div>
-              </div>
-            </div>
+        <p-divider></p-divider>
 
-            <!-- Cost Buildup -->
-            <div class="mb-4">
-              <h4 class="text-lg font-semibold mb-3">Cost Buildup</h4>
-              <div class="surface-100 p-3 border-round">
-                <div
-                  class="flex justify-content-between py-2 border-bottom-1 surface-border"
-                >
-                  <span>Direct Labor:</span>
-                  <span class="font-semibold">
-                    {{ results.costs.directLabor | currency }}/hr
-                  </span>
-                </div>
-                <div
-                  class="flex justify-content-between py-2 border-bottom-1 surface-border"
-                >
-                  <span>+ Fringe:</span>
-                  <span class="font-semibold">
-                    {{ results.costs.fringeCost | currency }}/hr
-                  </span>
-                </div>
-                <div
-                  class="flex justify-content-between py-2 border-bottom-1 surface-border"
-                >
-                  <span>+ Overhead:</span>
-                  <span class="font-semibold">
-                    {{ results.costs.overheadCost | currency }}/hr
-                  </span>
-                </div>
-                <div
-                  class="flex justify-content-between py-2 border-bottom-1 surface-border"
-                >
-                  <span>+ G&A:</span>
-                  <span class="font-semibold">
-                    {{ results.costs.gaCost | currency }}/hr
-                  </span>
-                </div>
-                <p-divider></p-divider>
-                <div class="flex justify-content-between py-2 text-xl">
-                  <span class="font-bold">Total Burdened Cost:</span>
-                  <span class="font-bold text-primary">
-                    {{ results.costs.totalBurdenedCost | currency }}/hr
-                  </span>
-                </div>
-                <div class="flex justify-content-between py-2">
-                  <span>
-                    Wrap Rate:
-                    <i
-                      class="pi pi-info-circle ml-1 text-sm"
-                      pTooltip="Multiplier from direct labor to fully burdened cost"
-                    ></i>
-                  </span>
-                  <span
-                    class="font-semibold"
-                    [ngClass]="{
-                      'text-warning-500':
-                        results.costs.wrapRate < 1.5 ||
-                        results.costs.wrapRate > 3.5,
-                      'text-danger-500': results.costs.wrapRate > 4.0
-                    }"
-                  >
-                    {{ results.costs.wrapRate | number : "1.2-2" }}x
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Target Pricing -->
-            <div class="mb-4">
-              <h4 class="text-lg font-semibold mb-3">Target Pricing</h4>
-              <div class="surface-100 p-3 border-round">
-                <div
-                  class="flex justify-content-between py-2 border-bottom-1 surface-border"
-                >
-                  <span>Target Bill Rate:</span>
-                  <span class="font-semibold text-success-500">
-                    {{ results.targetBillRate | currency }}/hr
-                  </span>
-                </div>
-                <div class="flex justify-content-between py-2">
-                  <span>Target Profit Margin:</span>
-                  <span class="font-semibold">
-                    {{ results.targetProfitMargin | number : "1.1-1" }}%
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Annual Summary -->
-            <div class="mb-4">
-              <h4 class="text-lg font-semibold mb-3">Annual Summary</h4>
-              <div class="surface-100 p-3 border-round">
-                <div
-                  class="flex justify-content-between py-2 border-bottom-1 surface-border"
-                >
-                  <span>Annual Cost:</span>
-                  <span class="font-semibold">{{
-                    getAnnualCost() | currency
-                  }}</span>
-                </div>
-                <div
-                  class="flex justify-content-between py-2 border-bottom-1 surface-border"
-                >
-                  <span>Annual Revenue:</span>
-                  <span class="font-semibold">{{
-                    getAnnualRevenue() | currency
-                  }}</span>
-                </div>
-                <div class="flex justify-content-between py-2">
-                  <span>Annual Profit:</span>
-                  <span class="font-semibold text-success-500">
-                    {{ getAnnualProfit() | currency }}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div class="flex justify-content-center">
-              <p-button
-                label="Export Results"
-                icon="pi pi-download"
-                (click)="exportResults()"
-                severity="secondary"
-              ></p-button>
-            </div>
-          </p-card>
-
-          <!-- Error Message -->
-          <p-message
-            *ngIf="error"
-            severity="error"
-            [text]="error"
-            [closable]="true"
-            (close)="error = null"
+        <h4 class="text-lg font-semibold mb-3">
+          Fringe Benefits
+          <span class="text-base font-normal text-500"
+            >(Total: {{ getTotalFringe() | currency }} -
+            {{
+              (getTotalFringe() / inputs.baseSalary) * 100 | number : "1.1-1"
+            }}% of salary)</span
           >
-          </p-message>
-        </div>
-      </div>
-    </p-tabPanel>
-
-    <!-- Scenario Comparison Tab -->
-    <p-tabPanel header="Scenario Comparison" leftIcon="pi pi-chart-line">
-      <div class="mb-3">
-        <p class="text-500">
-          Compare multiple utilization and contract type scenarios to find the
-          optimal pricing strategy
-        </p>
-      </div>
-
-      <!-- Scenario Setup -->
-      <p-card header="Scenario Setup" styleClass="mb-3">
-        <div class="mb-3">
-          <p-button
-            label="Add Scenario"
-            icon="pi pi-plus"
-            (click)="addComparisonScenario()"
-            severity="secondary"
-            size="small"
-          ></p-button>
-        </div>
-
-        <div
-          *ngFor="let scenario of comparisonScenarios; let i = index"
-          class="flex align-items-center gap-3 mb-2"
-        >
-          <div class="flex-1">
-            <label class="text-sm">Utilization Hours</label>
-            <p-dropdown
-              [(ngModel)]="scenario.utilizationHours"
-              [options]="utilizationOptions"
-              optionLabel="label"
-              optionValue="value"
-              styleClass="w-full"
-            ></p-dropdown>
-          </div>
-          <div class="flex-1">
-            <label class="text-sm">Contract Type</label>
-            <p-dropdown
-              [(ngModel)]="scenario.contractType"
-              [options]="contractTypeOptions.slice(1)"
-              optionLabel="label"
-              optionValue="value"
-              styleClass="w-full"
-            ></p-dropdown>
-          </div>
-          <div class="flex-1">
-            <label class="text-sm">Bill Rate</label>
+        </h4>
+        <div class="formgrid grid">
+          <div class="field col-6">
+            <label for="health" class="font-medium text-sm mb-2 block"
+              >Health Insurance</label
+            >
             <p-inputNumber
-              [(ngModel)]="scenario.billRate"
+              id="health"
+              [(ngModel)]="inputs.fringeBenefits.healthInsurance"
               mode="currency"
               currency="USD"
               [minFractionDigits]="0"
-              [min]="0"
-              styleClass="w-full"
+              class="w-full"
             ></p-inputNumber>
           </div>
-          <p-button
-            icon="pi pi-trash"
-            severity="danger"
-            [text]="true"
-            (click)="removeComparisonScenario(i)"
-            styleClass="mt-3"
-          ></p-button>
+          <div class="field col-6">
+            <label for="dental" class="font-medium text-sm mb-2 block"
+              >Dental Insurance</label
+            >
+            <p-inputNumber
+              id="dental"
+              [(ngModel)]="inputs.fringeBenefits.dentalInsurance"
+              mode="currency"
+              currency="USD"
+              [minFractionDigits]="0"
+              class="w-full"
+            ></p-inputNumber>
+          </div>
+          <div class="field col-6">
+            <label for="vision" class="font-medium text-sm mb-2 block"
+              >Vision Insurance</label
+            >
+            <p-inputNumber
+              id="vision"
+              [(ngModel)]="inputs.fringeBenefits.visionInsurance"
+              mode="currency"
+              currency="USD"
+              [minFractionDigits]="0"
+              class="w-full"
+            ></p-inputNumber>
+          </div>
+          <div class="field col-6">
+            <label for="match401k" class="font-medium text-sm mb-2 block"
+              >401(k) Match</label
+            >
+            <p-inputNumber
+              id="match401k"
+              [(ngModel)]="inputs.fringeBenefits.match401k"
+              mode="currency"
+              currency="USD"
+              [minFractionDigits]="0"
+              class="w-full"
+            ></p-inputNumber>
+          </div>
+          <div class="field col-6">
+            <label for="ptoCost" class="font-medium text-sm mb-2 block"
+              >PTO Cost</label
+            >
+            <p-inputNumber
+              id="ptoCost"
+              [(ngModel)]="inputs.fringeBenefits.ptoCost"
+              mode="currency"
+              currency="USD"
+              [minFractionDigits]="0"
+              class="w-full"
+            ></p-inputNumber>
+          </div>
+          <div class="field col-6">
+            <label for="training" class="font-medium text-sm mb-2 block"
+              >Training Budget</label
+            >
+            <p-inputNumber
+              id="training"
+              [(ngModel)]="inputs.fringeBenefits.trainingBudget"
+              mode="currency"
+              currency="USD"
+              [minFractionDigits]="0"
+              class="w-full"
+            ></p-inputNumber>
+          </div>
         </div>
 
-        <div class="flex justify-content-center mt-4">
-          <p-button
-            label="Compare Scenarios"
-            icon="pi pi-chart-line"
-            (click)="compareScenarios()"
-            [loading]="comparisonLoading"
-            [disabled]="comparisonLoading || comparisonScenarios.length === 0"
-          ></p-button>
-        </div>
+        <p-button
+          label="Calculate Rates"
+          icon="pi pi-calculator"
+          (click)="calculateRates()"
+          class="w-full"
+        ></p-button>
       </p-card>
+    </div>
 
-      <!-- Comparison Results -->
-      <p-card header="Comparison Results" *ngIf="comparisonResults.length > 0">
-        <p-table [value]="comparisonResults" styleClass="p-datatable-striped">
-          <ng-template pTemplate="header">
-            <tr>
-              <th>Scenario</th>
-              <th>Contract Type</th>
-              <th>Utilization</th>
-              <th>Burdened Cost/hr</th>
-              <th>Bill Rate/hr</th>
-              <th>Profit Margin</th>
-              <th>Annual Profit</th>
-              <th>Wrap Rate</th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-result let-i="rowIndex">
-            <tr>
-              <td>Scenario {{ i + 1 }}</td>
-              <td>{{ getContractTypeLabel(result.scenario.contractType) }}</td>
-              <td>{{ result.scenario.utilizationHours }} hrs</td>
-              <td>
-                {{ result.rateStructure.costs.totalBurdenedCost | currency }}
-              </td>
-              <td>
-                <span *ngIf="result.scenario.billRate">
-                  {{ result.scenario.billRate | currency }}
-                </span>
-                <span *ngIf="!result.scenario.billRate" class="text-500">
-                  {{ result.rateStructure.targetBillRate | currency }} (target)
-                </span>
-              </td>
-              <td>
-                <span
-                  *ngIf="result.profitAnalysis"
-                  [ngClass]="
-                    'text-' +
-                    getMarginSeverity(result.profitAnalysis.profitMargin) +
-                    '-500'
-                  "
-                >
-                  {{ result.profitAnalysis.profitMargin | number : "1.1-1" }}%
-                </span>
-                <span *ngIf="!result.profitAnalysis" class="text-500">
-                  {{
-                    result.rateStructure.targetProfitMargin | number : "1.1-1"
-                  }}% (target)
-                </span>
-              </td>
-              <td>
-                <span *ngIf="result.profitAnalysis">
-                  {{
-                    result.profitAnalysis.profit *
-                      result.scenario.utilizationHours | currency
-                  }}
-                </span>
-                <span *ngIf="!result.profitAnalysis" class="text-500">
-                  N/A
-                </span>
-              </td>
-              <td
-                [ngClass]="
-                  'text-' +
-                  getWrapRateSeverity(result.rateStructure.costs.wrapRate) +
-                  '-500'
-                "
+    <div class="col-12 md:col-6" *ngIf="results">
+      <p-card header="Calculation Results">
+        <p-message
+          *ngIf="results.costs.wrapRate < 1.5"
+          severity="warn"
+          [text]="wrapRateWarning"
+          class="mb-3"
+        ></p-message>
+
+        <p-message
+          *ngIf="showFarWarning && companyRates"
+          severity="info"
+          class="mb-3"
+        >
+          <span
+            >FAR compensation cap of
+            {{ companyRates.compensationCap | currency }} does not apply to T&M
+            contracts. Full salary of {{ inputs.baseSalary | currency }} is used
+            for all calculations.</span
+          >
+        </p-message>
+
+        <div class="mb-4">
+          <h4 class="text-lg font-semibold mb-3">Rate Breakdown</h4>
+          <div class="surface-100 p-3 border-round">
+            <div
+              class="flex justify-content-between py-2 border-bottom-1 surface-border"
+            >
+              <span
+                >Direct Labor Rate:
+                <i
+                  class="pi pi-info-circle text-sm"
+                  pTooltip="Base salary ÷ 2080 hours (FAR standard work year)"
+                ></i
+              ></span>
+              <span class="font-semibold"
+                >{{ results.rates.directLaborRate | currency }}/hr</span
               >
-                {{ result.rateStructure.costs.wrapRate | number : "1.2-2" }}x
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
-      </p-card>
+            </div>
+            <div
+              class="flex justify-content-between py-2 border-bottom-1 surface-border"
+            >
+              <span>Fringe Rate:</span>
+              <span class="font-semibold"
+                >{{ results.rates.fringeRate | number : "1.1-1" }}%</span
+              >
+            </div>
+            <div
+              class="flex justify-content-between py-2 border-bottom-1 surface-border"
+            >
+              <span>Overhead Rate:</span>
+              <span class="font-semibold"
+                >{{ results.rates.overheadRate | number : "1.1-1" }}%</span
+              >
+            </div>
+            <div class="flex justify-content-between py-2">
+              <span>G&A Rate:</span>
+              <span class="font-semibold"
+                >{{ results.rates.gaRate | number : "1.1-1" }}%</span
+              >
+            </div>
+          </div>
+        </div>
 
-      <!-- Loading State -->
-      <div *ngIf="comparisonLoading" class="flex justify-content-center p-5">
-        <p-progressSpinner></p-progressSpinner>
-      </div>
-    </p-tabPanel>
-  </p-tabView>
+        <div class="mb-4">
+          <h4 class="text-lg font-semibold mb-3">Cost Buildup</h4>
+          <div class="surface-100 p-3 border-round">
+            <div
+              class="flex justify-content-between py-2 border-bottom-1 surface-border"
+            >
+              <span>Direct Labor:</span>
+              <span class="font-semibold"
+                >{{ results.costs.directLabor | currency }}/hr</span
+              >
+            </div>
+            <div
+              class="flex justify-content-between py-2 border-bottom-1 surface-border"
+            >
+              <span>+ Fringe:</span>
+              <span class="font-semibold"
+                >{{ results.costs.fringeCost | currency }}/hr</span
+              >
+            </div>
+            <div
+              class="flex justify-content-between py-2 border-bottom-1 surface-border"
+            >
+              <span>+ Overhead:</span>
+              <span class="font-semibold"
+                >{{ results.costs.overheadCost | currency }}/hr</span
+              >
+            </div>
+            <div
+              class="flex justify-content-between py-2 border-bottom-1 surface-border"
+            >
+              <span>+ G&A:</span>
+              <span class="font-semibold"
+                >{{ results.costs.gaCost | currency }}/hr</span
+              >
+            </div>
+            <div class="flex justify-content-between py-2">
+              <span class="font-semibold">Fully Burdened Cost:</span>
+              <span class="font-bold text-primary"
+                >{{ results.costs.totalBurdenedCost | currency }}/hr</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <h4 class="text-lg font-semibold mb-3">Pricing Summary</h4>
+          <div class="surface-100 p-3 border-round">
+            <div
+              class="flex justify-content-between py-2 border-bottom-1 surface-border"
+            >
+              <span>Wrap Rate:</span>
+              <span class="font-semibold"
+                >{{ results.costs.wrapRate | number : "1.2-2" }}x</span
+              >
+            </div>
+            <div
+              class="flex justify-content-between py-2 border-bottom-1 surface-border"
+            >
+              <span
+                >Target Bill Rate ({{
+                  results.targetProfitMargin | number : "1.0-0"
+                }}% margin):</span
+              >
+              <span class="font-semibold text-primary"
+                >{{ results.targetBillRate | currency }}/hr</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="text-lg font-semibold mb-3">Annual Projections</h4>
+          <div class="surface-100 p-3 border-round">
+            <div
+              class="flex justify-content-between py-2 border-bottom-1 surface-border"
+            >
+              <span>Annual Cost ({{ inputs.utilizationHours }} hrs):</span>
+              <span class="font-semibold">{{
+                getAnnualCost() | currency
+              }}</span>
+            </div>
+            <div
+              class="flex justify-content-between py-2 border-bottom-1 surface-border"
+            >
+              <span>Annual Revenue:</span>
+              <span class="font-semibold">{{
+                getAnnualRevenue() | currency
+              }}</span>
+            </div>
+            <div class="flex justify-content-between py-2">
+              <span>Annual Profit:</span>
+              <span class="font-bold text-green-600">{{
+                getAnnualProfit() | currency
+              }}</span>
+            </div>
+          </div>
+        </div>
+      </p-card>
+    </div>
+  </div>
 </div>

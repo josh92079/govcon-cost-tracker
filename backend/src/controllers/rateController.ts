@@ -13,7 +13,7 @@ interface RateCalculationRequest extends RateCalculationInput {
 
 export const rateController = {
   async calculateRates(
-    req: Request<{}, {}, RateCalculationRequest>,
+    req: Request<{}, {}, RateCalculationInput>,
     res: Response
   ): Promise<void> {
     try {
@@ -21,21 +21,8 @@ export const rateController = {
         baseSalary,
         fringeBenefits,
         utilizationHours = 1800,
-        contractType,
+        contractType, // Add this to accept contract type from frontend
       } = req.body;
-
-      // Validate input
-      if (!baseSalary || baseSalary <= 0) {
-        res.status(400).json({ error: "Base salary must be positive" });
-        return;
-      }
-
-      if (utilizationHours < 1000 || utilizationHours > 2080) {
-        res.status(400).json({
-          error: "Utilization hours must be between 1000 and 2080",
-        });
-        return;
-      }
 
       const currentYear = new Date().getFullYear();
       const companyRates = await CompanyRates.findOne({
@@ -50,19 +37,16 @@ export const rateController = {
       // Create temporary employee object for calculation
       const tempEmployee = { baseSalary };
 
-      // For backward compatibility, check if the enhanced calculator is available
-      // If not, use the original method
       const rateStructure = RateCalculator.buildRateStructure(
         tempEmployee,
         fringeBenefits,
         companyRates,
         utilizationHours,
-        contractType // This parameter will be ignored by the original version
+        contractType // Pass contract type to rate calculator
       );
 
       res.json(rateStructure);
     } catch (error) {
-      console.error("Rate calculation error:", error);
       res.status(500).json({ error: (error as Error).message });
     }
   },
